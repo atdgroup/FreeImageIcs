@@ -244,24 +244,30 @@ FreeImageIcs_CreateFIB(BYTE *data, Ics_DataType icsType, int bpp, int width, int
 }
 
 
-FIBITMAP* GetIcsDimensionXYImage(ICS *ics, ...)
+FIBITMAP* DLL_CALLCONV
+GetIcsDimensionXYImage(FreeImageIcsPointer fip, ...)
 {
-	va_list ap;
-	va_start(ap, ics);
-
-	if(ics == NULL)
+	if(fip == NULL)
 		return NULL;
 
 	Ics_DataType dataType;
 	int ndims;
 	size_t dims[ICS_MAXDIM];
 
-	IcsGetLayout (ics, &dataType, &ndims, dims);
+	// You have to reopen so to make the pointer that IcsSkipDataBlock uses point back to
+	// zero. What can I say ICS API is crap.
+	// We really should patch libics.
+	ReOpenExistingIcsFileInReadMode(fip);
+
+	IcsGetLayout (fip->ip, &dataType, &ndims, dims);
 
 	int count = 0;
 	int dimension = 2;
 	int dimensions[10];
 	int dimension_index;
+
+	va_list ap;
+	va_start(ap, fip);
 
 	while((dimension_index = va_arg(ap, int)) >= 0)
 	{
@@ -270,7 +276,7 @@ FIBITMAP* GetIcsDimensionXYImage(ICS *ics, ...)
 			return NULL;
 
 		// If the dimensions index is greater than the size for that dimension return error;
-		if(dimension_index >= dims[dimension])
+		if(dimension_index >= (int) dims[dimension])
 			return NULL;
 
 		dimensions[dimension - 2] = dimension_index;
@@ -284,19 +290,19 @@ FIBITMAP* GetIcsDimensionXYImage(ICS *ics, ...)
 
 	ArrayReverse(dimensions, ndims - 2);
 	
-	GetTotalDimensionalDataSize(ics, ndims - 1, &size);
+	GetTotalDimensionalDataSize(fip->ip, ndims - 1, &size);
 	size_t bufsize = size;
 
 	for(int i=2; i < ndims; i++) {
 		
-		GetTotalDimensionalDataSize(ics, i, &size);
+		GetTotalDimensionalDataSize(fip->ip, i, &size);
 
 		data_position += (dimensions[i - 2] * size);
 
 		//printf("dimension %d size %d\n", dimensions[i], size);
 	}
 		
-	if(IcsSkipDataBlock  (ics, data_position) != IcsErr_Ok)
+	if(IcsSkipDataBlock  (fip->ip, data_position) != IcsErr_Ok)
 		return NULL;
 
 	BYTE *buf = (BYTE *) malloc (bufsize);
@@ -304,12 +310,12 @@ FIBITMAP* GetIcsDimensionXYImage(ICS *ics, ...)
 	if (buf == NULL)
    		return NULL;
 
-	if(IcsGetDataBlock  (ics, buf, bufsize) != IcsErr_Ok) {
+	if(IcsGetDataBlock  (fip->ip, buf, bufsize) != IcsErr_Ok) {
 		free(buf);
 		return NULL;
 	}
 
-	FIBITMAP *dib = FreeImageIcs_CreateFIB(buf, dataType, GetIcsDataTypeBPP (dataType), dims[0], dims[1], 0, 0);
+	FIBITMAP *dib = FreeImageIcs_CreateFIB(buf, dataType, GetIcsDataTypeBPP (dataType), (int) dims[0], (int) dims[1], 0, 0);
 	
 	free(buf);
 
@@ -320,7 +326,7 @@ FIBITMAP* GetIcsDimensionXYImage(ICS *ics, ...)
 // This function gets the first xy image for the specified splice of the
 // specified dimension. All other dimensions are held at zero.
 DLL_API FIBITMAP* DLL_CALLCONV
-GetIcsXYImageForDimensionSlice(FreeImageIcsPointer fip, int dimension, int slice, int *shit)
+GetIcsXYImageForDimensionSlice(FreeImageIcsPointer fip, int dimension, int slice)
 {
 	if(fip == NULL)
 		return NULL;
@@ -329,47 +335,42 @@ GetIcsXYImageForDimensionSlice(FreeImageIcsPointer fip, int dimension, int slice
 	int ndims;
 	size_t dims[ICS_MAXDIM];
 
+	// You have to reopen so to make the pointer that IcsSkipDataBlock uses point back to
+	// zero. What can I say ICS API is crap.
+	// We really should patch libics.
+	ReOpenExistingIcsFileInReadMode(fip);
+
 	IcsGetLayout (fip->ip, &dataType, &ndims, dims);
 
-	if(ndims <= 2) {
-		*shit = 1;
+	if(ndims <= 2)
 		return NULL;
-	}
 
 	// Dimesion must be greater than 1 as this is a multidimensional image.
-	if(dimension < 2 || dimension >= ndims) {
-		*shit = 2;
+	if(dimension < 2 || dimension >= ndims)
 		return NULL;
-	}
 
 	// If the slice is greater than the size for that dimension return error;
-	if(slice >= dims[dimension]) {
-		*shit = 3;
+	if(slice >= (int) dims[dimension])
 		return NULL;
-	}
 
 	size_t bufsize;
 
 	GetTotalDimensionalDataSize(fip->ip, dimension, &bufsize);
 		
-	if(IcsSkipDataBlock  (fip->ip, bufsize * slice) != IcsErr_Ok) {
-		*shit = 4;
+	if(IcsSkipDataBlock  (fip->ip, bufsize * slice) != IcsErr_Ok)
 		return NULL;
-	}
 
 	BYTE *buf = (BYTE *) malloc (bufsize);
 
-	if (buf == NULL) {
-		*shit = 5;
+	if (buf == NULL)
    		return NULL;
-	}
 
 	if(IcsGetDataBlock  (fip->ip, buf, bufsize) != IcsErr_Ok) {
 		free(buf);
 		return NULL;
 	}
 
-	FIBITMAP *dib = FreeImageIcs_CreateFIB(buf, dataType, GetIcsDataTypeBPP (dataType), dims[0], dims[1], 0, 0);
+	FIBITMAP *dib = FreeImageIcs_CreateFIB(buf, dataType, GetIcsDataTypeBPP (dataType), (int) dims[0], (int) dims[1], 0, 0);
 	
 	free(buf);
 
@@ -584,14 +585,19 @@ SaveFIBToIcsPointer (FIBITMAP *src, ICS* ics)
 	
 	BYTE *bits =(BYTE*) malloc(bufsize_in_bytes);
 
-	if(bpp == 24 && ndims == 3)
+	if( IcsSetLayout(ics, dt, ndims, (size_t *) dims) != IcsErr_Ok)
+		return FREEIMAGE_ALGORITHMS_ERROR;
+
+	if(bpp == 24 && ndims == 3) {
 		GetOldICSColourImageData(dib, bits);
+		IcsSetOrder  (ics, 0, "x", "x-position");
+		IcsSetOrder  (ics, 1, "y", "y-position");
+		IcsSetOrder  (ics, 2, "c", "colour");
+		IcsAddHistory  (ics, "labels", "x y c");
+	}
 	else
 		FreeImage_GetBitsVerticalFlip(dib, bits);
 
-	if( IcsSetLayout(ics, dt, ndims, (size_t *) dims) != IcsErr_Ok)
-		return FREEIMAGE_ALGORITHMS_ERROR;
-	
 	if( (err = IcsSetData(ics, bits, bufsize_in_bytes)) != IcsErr_Ok)
 		return FREEIMAGE_ALGORITHMS_ERROR;
 		
@@ -649,6 +655,19 @@ CopyHistoryStringsToArray(FreeImageIcsPointer fip, char *** history_strings, int
 		IcsGetHistoryString (fip->ip, (*history_strings)[i], (i > 0) ? IcsWhich_Next : IcsWhich_First);	
 	}
 		
+	return FREEIMAGE_ALGORITHMS_SUCCESS;
+}
+
+
+int 
+ReOpenExistingIcsFileInReadMode(FreeImageIcsPointer fip)
+{
+	if (IcsClose (fip->ip) != IcsErr_Ok)
+   		return FREEIMAGE_ALGORITHMS_ERROR;
+
+	if(IcsOpen (&(fip->ip), fip->filepath, "r") != IcsErr_Ok)
+		return FREEIMAGE_ALGORITHMS_ERROR;
+
 	return FREEIMAGE_ALGORITHMS_SUCCESS;
 }
 
@@ -864,7 +883,7 @@ FreeImageIcs_LoadFIBFromIcsFile (FreeImageIcsPointer fip, int padded)
 		if(FreeImageIcs_IsIcsFileColourFile(fip))
 			dib = LoadFIBFromColourIcsFile (fip->ip, padded); 
 		else {
-			dib = GetIcsDimensionXYImage(fip->ip, 0);
+			dib = GetIcsXYImageForDimensionSlice(fip, 2, 0);
 		}
 	}
 	else {
@@ -880,6 +899,9 @@ FreeImageIcs_SaveFIBToIcsFile (FIBITMAP *dib, const char *pathname)
 	ICS* ip;
 	Ics_Error retval;
 	FIBITMAP *standard_dib;
+
+	if(dib == NULL)
+		return FREEIMAGE_ALGORITHMS_ERROR;
 
 	retval = IcsOpen (&ip, pathname, "w2");
 

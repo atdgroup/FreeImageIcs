@@ -38,7 +38,10 @@ DLL_API int DLL_CALLCONV
 FreeImageIcs_SaveFIBToIcsFile (FIBITMAP *dib, const char *pathname);
 
 DLL_API FIBITMAP* DLL_CALLCONV
-GetIcsXYImageForDimensionSlice(FreeImageIcsPointer fip, int dimension, int slice, int *shit);
+GetIcsDimensionXYImage(FreeImageIcsPointer fip, ...);
+
+DLL_API FIBITMAP* DLL_CALLCONV
+GetIcsXYImageForDimensionSlice(FreeImageIcsPointer fip, int dimension, int slice);
 
 DLL_API int DLL_CALLCONV
 FreeImageIcs_GetNumberOfDimensions (FreeImageIcsPointer fip);

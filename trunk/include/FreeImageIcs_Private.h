@@ -20,11 +20,11 @@ struct FreeImageIcsStr
 	BYTE *buf; 
 };
 
-
-FIBITMAP* GetIcsDimensionXYImage(ICS *ics, ...);
-
 int
 CopyHistoryStringsToArray(FreeImageIcsPointer fip, char *** history_strings, int *number_of_strings);
+
+int 
+ReOpenExistingIcsFileInReadMode(FreeImageIcsPointer fip);
 
 int 
 ReOpenExistingIcsFileInWriteMode(FreeImageIcsPointer fip, bool maintain_history);

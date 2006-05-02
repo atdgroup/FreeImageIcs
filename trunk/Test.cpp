@@ -8,6 +8,7 @@
 
 #include "FreeImageAlgorithms_Utilities.h"
 #include "FreeImageAlgorithms_Utils.h"
+#include "FreeImageAlgorithms_IO.h"
 
 #include <iostream>
 #include <assert.h>
@@ -143,15 +144,31 @@ int main()
 	hdc = GetDC(hwndMain);
 	FreeImageIcsPointer fip;
 
-	char *file = "C:\\Documents and Settings\\Glenn\\My Documents\\Test Images\\colour_test.ics";
+	char *file = "C:\\Documents and Settings\\Pierce\\My Documents\\Test Images\\dance.jpg";
 
 	FreeImageIcs_OpenIcsFile(&fip, file, "r");
 	
-	int shit = 0;
-	dib = GetIcsXYImageForDimensionSlice(fip, 2, 0, &shit);
+	dib = FreeImageAlgorithms_LoadFIBFromFile (file);
+
+	dib = FreeImage_ConvertToStandardType(dib, 1);
+
+	FreeImageIcs_SaveFIBToIcsFile (dib, "C:\\Documents and Settings\\Pierce\\Desktop\\my.ics");
+
+	//dib = FreeImageIcs_LoadFIBFromIcsFile (fip, 0); 
+	//dib = GetIcsXYImageForDimensionSlice(fip, 2, 0, &shit);
+//	dib = GetIcsXYImageForDimensionSlice(fip, 2, 0);  
+
+//	dib = GetIcsXYImageForDimensionSlice(fip, 2, 1); 
+
+//	assert(dib != NULL);
+
+//	dib = GetIcsXYImageForDimensionSlice(fip, 2, 2); 
+
+//	assert(dib != NULL);
+
 	//dib = FreeImageIcs_LoadFIBFromIcsFile (file, 0);
 
-	//dib = FreeImage_ConvertToStandardType(dib, 1);
+	
 
 	hbitmap = FreeImageAlgorithms_GetDibSection(dib, hdc, 0, 0,
 						FreeImage_GetWidth(dib), FreeImage_GetHeight(dib));
