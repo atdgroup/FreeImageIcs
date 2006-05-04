@@ -144,17 +144,19 @@ int main()
 	hdc = GetDC(hwndMain);
 	FreeImageIcsPointer fip;
 
-	char *file = "C:\\Documents and Settings\\Pierce\\My Documents\\Test Images\\dance.jpg";
+	char *file = "C:\\Documents and Settings\\Pierce\\My Documents\\Test Images\\test12bit.ics";
 
 	FreeImageIcs_OpenIcsFile(&fip, file, "r");
 	
-	dib = FreeImageAlgorithms_LoadFIBFromFile (file);
+
+
+	dib = FreeImageIcs_LoadFIBFromIcsFile (fip, 0); 
 
 	dib = FreeImage_ConvertToStandardType(dib, 1);
 
-	FreeImageIcs_SaveFIBToIcsFile (dib, "C:\\Documents and Settings\\Pierce\\Desktop\\my.ics");
+	
 
-	//dib = FreeImageIcs_LoadFIBFromIcsFile (fip, 0); 
+	//
 	//dib = GetIcsXYImageForDimensionSlice(fip, 2, 0, &shit);
 //	dib = GetIcsXYImageForDimensionSlice(fip, 2, 0);  
 
@@ -179,6 +181,8 @@ int main()
 	SelectObject( hbitmap_hdc, hbitmap );
 
 	ShowWindow(hwndMain, 1);
+
+	FreeImageIcs_SaveFIBToIcsFile (dib, "C:\\Documents and Settings\\Pierce\\Desktop\\my.ics");
 
 	// message-loop
 	while(GetMessage(&msg, NULL, 0, 0) > 0)

@@ -508,7 +508,7 @@ static void
 GetOldICSColourImageData(FIBITMAP *dib, void *data)
 {
 	register int channel, x, y;  
-	int height = FreeImage_GetHeight(dib);
+	int i=0, height = FreeImage_GetHeight(dib);
 	int pitch = FreeImage_GetPitch(dib);
 
 	BYTE *bits = FreeImage_GetBits(dib);
@@ -521,9 +521,11 @@ GetOldICSColourImageData(FIBITMAP *dib, void *data)
 			bits = (BYTE *) FreeImage_GetScanLine(dib, height - y - 1);
 
 			for( x = channel; x < pitch; x+=3)
-				*buffer++ = bits[x];
+				*buffer++ = bits[x]; i++;
 		}
 	}
+
+	i = i;
 }
 
 
@@ -569,11 +571,11 @@ SaveFIBToIcsPointer (FIBITMAP *src, ICS* ics)
 		dt = Ics_uint8;  /* channel Size */
 		ndims = 3;
 		
-		dims[0] = pitch / bytes_per_pixel; 
+		dims[0] = width; 
         dims[1] = height;
         dims[2] = channels; 
-		
-		bufsize_in_bytes = pitch * height; 
+	
+		bufsize_in_bytes = width * height * channels; 
 	}
 	else {
 
@@ -782,7 +784,7 @@ FreeImageIcs_OpenIcsFile(FreeImageIcsPointer *fip, const char *filepath, const c
 	if(strcmp(access_mode, "r") == 0) {
 
 		// Justs looks at the extension
-		if(!IcsVersion (filepath))
+		if(IcsVersion (filepath) == 0)
 			return FREEIMAGE_ALGORITHMS_ERROR;
 
 		if(IcsOpen (&((*fip)->ip), filepath, "r") != IcsErr_Ok)
@@ -792,7 +794,7 @@ FreeImageIcs_OpenIcsFile(FreeImageIcsPointer *fip, const char *filepath, const c
 
 		if(file_exists(filepath)) {
 		
-			if(!IcsVersion (filepath))
+			if(IcsVersion (filepath) == 0)
 				return FREEIMAGE_ALGORITHMS_ERROR;
 
 			if(ReOpenExistingIcsFileInWriteMode(*fip, 1) == FREEIMAGE_ALGORITHMS_ERROR)
@@ -865,6 +867,36 @@ FreeImageIcs_IsIcsFileColourFile(FreeImageIcsPointer fip)
 		return 1;
 
 	return 0;
+}
+
+
+int DLL_CALLCONV
+FreeImageIcs_NumberOfDimensions (FreeImageIcsPointer fip)
+{
+	Ics_DataType dt;
+	int ndims;
+	int dims[ICS_MAXDIM];
+	
+	IcsGetLayout (fip->ip, &dt, &ndims, (size_t *) dims);
+
+	return ndims;
+}
+
+
+int DLL_CALLCONV
+FreeImageIcs_GetDimensionDetails (FreeImageIcsPointer fip, int dimension, char* order, char *label, int* size)
+{	
+	Ics_DataType dt;
+	int ndims, channels = 1;
+	int dims[ICS_MAXDIM];
+	
+	IcsGetLayout (fip->ip, &dt, &ndims, (size_t *) dims);
+
+	IcsGetOrder  (fip->ip, dimension, order, label);
+
+	*size = dims[dimension];
+
+	return FREEIMAGE_ALGORITHMS_SUCCESS;
 }
 
 
