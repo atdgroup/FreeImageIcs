@@ -40,6 +40,9 @@ IsIcsFilePaddded (char *filepath);
 DLL_API FIBITMAP* DLL_CALLCONV
 FreeImageIcs_LoadFIBFromIcsFile (FreeImageIcsPointer fip, int padded);
 
+DLL_API FIBITMAP* DLL_CALLCONV
+FreeImageIcs_LoadFIBFromIcsFilePath (const char* filepath, int padded);
+
 DLL_API int DLL_CALLCONV
 FreeImageIcs_SaveFIBToIcsFile (FIBITMAP *dib, const char *pathname);
 

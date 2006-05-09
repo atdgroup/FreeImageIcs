@@ -13,7 +13,7 @@
 // Old ics file save the data as all the red pixels then all the greens and then all the blues
 // Yes crap - As this is slower as it requires three passes.
 static FIBITMAP*
-LoadOldICSColourImage(BYTE *data, int width, int height, int padded)
+LoadICSColourImage(BYTE *data, int width, int height, int padded)
 {
 	FIBITMAP 	*dib; 
 	BYTE *bits, *buffer;
@@ -49,47 +49,6 @@ LoadOldICSColourImage(BYTE *data, int width, int height, int padded)
 	  
 	return dib;
 }
-
-/*
-static FIBITMAP*
-LoadOldICSColourImage(BYTE *data, int width, int height, int padded)
-{
-	FIBITMAP 	*dib; 
-	BYTE *bits, *buffer;
-	register int channel, x, y;
-	int data_line_length;   
-
-	if ( (dib = FreeImage_AllocateT (FIT_BITMAP, width, height, 24, 0, 0, 0)) == NULL )
-		return NULL;
-			
-	if(padded)
-		data_line_length = FreeImage_GetPitch(dib);
-	else
-		data_line_length = FreeImage_GetLine(dib);   
-			
-	bits = (BYTE *) FreeImage_GetBits(dib);
-	buffer = (BYTE *) data;
-			
-	// blue == 0; green = 1; red == 2
-	for(channel = 2; channel >= 0; channel-- )
-	{
-		for(y = 0; y < height; y++) {
-
-			bits = (BYTE *) FreeImage_GetScanLine(dib, height - y - 1);
-
-			for( x = channel; x < data_line_length; x+=3) {
-				
-				bits[x] = buffer[0];  
-		
-				buffer++;
-			}
-		}
-	 }
-	  
-	return dib;
-}
-*/
-
 
 
 static FREE_IMAGE_TYPE
@@ -536,7 +495,7 @@ LoadFIBFromColourIcsFile (ICS *ip, int padded)
 	if (retval != IcsErr_Ok)
    		return NULL;
 	
-	if ( (dib = LoadOldICSColourImage(buf, width, height, padded)) == NULL)
+	if ( (dib = LoadICSColourImage(buf, width, height, padded)) == NULL)
 		return NULL;
 		
 	free(buf);
@@ -964,6 +923,16 @@ FreeImageIcs_LoadFIBFromIcsFile (FreeImageIcsPointer fip, int padded)
 	}
 	
 	return dib;
+}
+
+FIBITMAP* DLL_CALLCONV
+FreeImageIcs_LoadFIBFromIcsFilePath (const char* filepath, int padded)
+{
+	FreeImageIcsPointer fip;
+
+	FreeImageIcs_OpenIcsFile(&fip, filepath, "r");
+
+	return FreeImageIcs_LoadFIBFromIcsFile (fip, padded);
 }
 
 int DLL_CALLCONV
