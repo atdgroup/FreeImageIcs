@@ -50,6 +50,47 @@ LoadOldICSColourImage(BYTE *data, int width, int height, int padded)
 	return dib;
 }
 
+/*
+static FIBITMAP*
+LoadOldICSColourImage(BYTE *data, int width, int height, int padded)
+{
+	FIBITMAP 	*dib; 
+	BYTE *bits, *buffer;
+	register int channel, x, y;
+	int data_line_length;   
+
+	if ( (dib = FreeImage_AllocateT (FIT_BITMAP, width, height, 24, 0, 0, 0)) == NULL )
+		return NULL;
+			
+	if(padded)
+		data_line_length = FreeImage_GetPitch(dib);
+	else
+		data_line_length = FreeImage_GetLine(dib);   
+			
+	bits = (BYTE *) FreeImage_GetBits(dib);
+	buffer = (BYTE *) data;
+			
+	// blue == 0; green = 1; red == 2
+	for(channel = 2; channel >= 0; channel-- )
+	{
+		for(y = 0; y < height; y++) {
+
+			bits = (BYTE *) FreeImage_GetScanLine(dib, height - y - 1);
+
+			for( x = channel; x < data_line_length; x+=3) {
+				
+				bits[x] = buffer[0];  
+		
+				buffer++;
+			}
+		}
+	 }
+	  
+	return dib;
+}
+*/
+
+
 
 static FREE_IMAGE_TYPE
 IcsTypeToFreeImageType (Ics_DataType icsType)
@@ -505,7 +546,7 @@ LoadFIBFromColourIcsFile (ICS *ip, int padded)
 
 
 static void
-GetOldICSColourImageData(FIBITMAP *dib, void *data)
+GetColourImageDataInIcsFormat(FIBITMAP *dib, void *data)
 {
 	register int channel, x, y;  
 	int i=0, height = FreeImage_GetHeight(dib);
@@ -591,7 +632,7 @@ SaveFIBToIcsPointer (FIBITMAP *src, ICS* ics)
 		return FREEIMAGE_ALGORITHMS_ERROR;
 
 	if(bpp == 24 && ndims == 3) {
-		GetOldICSColourImageData(dib, bits);
+		GetColourImageDataInIcsFormat(dib, bits);
 		IcsSetOrder  (ics, 0, "x", "x-position");
 		IcsSetOrder  (ics, 1, "y", "y-position");
 		IcsSetOrder  (ics, 2, "c", "colour");
