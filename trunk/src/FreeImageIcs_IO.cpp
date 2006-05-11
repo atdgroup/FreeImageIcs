@@ -884,6 +884,32 @@ FreeImageIcs_NumberOfDimensions (FreeImageIcsPointer fip)
 
 
 int DLL_CALLCONV
+FreeImageIcs_GetLabelForDimension (FreeImageIcsPointer fip, int dimension, char *label)
+{
+	char labels[ICS_LINE_LENGTH];
+
+	FreeImageIcs_GetFirstIcsHistoryValueWithKey(fip, "labels", labels);
+
+	char *result = strtok(labels, " ");
+
+	if(dimension <= 0)
+		strcpy(label, result);
+
+	for(int i = 1; i <= dimension; i++) {
+		if((result = strtok(NULL, " ")) == NULL)
+			return FREEIMAGE_ALGORITHMS_ERROR;
+	}
+
+	if(result != NULL)
+		strcpy(label, result);
+	else
+		return FREEIMAGE_ALGORITHMS_ERROR;
+
+	return FREEIMAGE_ALGORITHMS_SUCCESS;
+}
+
+
+int DLL_CALLCONV
 FreeImageIcs_GetDimensionDetails (FreeImageIcsPointer fip, int dimension, char* order, char *label, int* size)
 {	
 	Ics_DataType dt;
@@ -893,6 +919,7 @@ FreeImageIcs_GetDimensionDetails (FreeImageIcsPointer fip, int dimension, char* 
 	IcsGetLayout (fip->ip, &dt, &ndims, (size_t *) dims);
 
 	IcsGetOrder  (fip->ip, dimension, order, label);
+	FreeImageIcs_GetLabelForDimension (fip, dimension, label);
 
 	*size = dims[dimension];
 

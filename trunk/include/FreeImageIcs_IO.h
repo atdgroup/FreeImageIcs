@@ -20,6 +20,9 @@ DLL_API int DLL_CALLCONV
 FreeImageIcs_NumberOfDimensions (FreeImageIcsPointer fip);
 
 DLL_API int DLL_CALLCONV
+FreeImageIcs_GetLabelForDimension (FreeImageIcsPointer fip, int dimension, char *label);
+
+DLL_API int DLL_CALLCONV
 FreeImageIcs_GetDimensionDetails (FreeImageIcsPointer fip, int dimension, char* order, char *label, int* size);
 
 DLL_API int DLL_CALLCONV

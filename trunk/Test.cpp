@@ -144,11 +144,14 @@ int main()
 	hdc = GetDC(hwndMain);
 	FreeImageIcsPointer fip;
 
-	//char *file = "C:\\Documents and Settings\\Pierce\\My Documents\\Test Images\\dance.jpg";
-	char *file = "C:\\Documents and Settings\\Pierce\\Desktop\\my2.ics";
+	char *file = "C:\\Documents and Settings\\Pierce\\My Documents\\Test Images\\Csarseven.ics";
 
 	FreeImageIcs_OpenIcsFile(&fip, file, "r");
 	dib = FreeImageIcs_LoadFIBFromIcsFile (fip, 0); 
+
+	char label[500];
+
+	FreeImageIcs_GetLabelForDimension (fip, 2, label);
 
 
 	//dib = FreeImage_ConvertToStandardType(dib, 1);
