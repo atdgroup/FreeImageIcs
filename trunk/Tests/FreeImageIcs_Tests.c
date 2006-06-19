@@ -5,6 +5,18 @@
 
 #include "FreeImageIcs_Testing.h"
 
+
+static void
+TestFreeImageIcs_IsIcsFileTest(CuTest* tc)
+{
+	//char *file = "C:\\Documents and Settings\\Glenn\\My Documents\\Test Images\\black_test.jpg";
+	char *file = "C:\\Documents and Settings\\Glenn\\My Documents\\Test Images\\kitten.jpg";
+
+	int err = FreeImageIcs_IsIcsFile (file);   
+
+	CuAssertTrue(tc, err != FREEIMAGE_ALGORITHMS_ERROR);
+}
+
 static void
 TestFreeImageIcs_MetaDataAdd(CuTest* tc)
 {
@@ -31,6 +43,7 @@ CuGetFreeImageIcsTestSuite(void)
 	CuSuite* suite = CuSuiteNew();
 
 	SUITE_ADD_TEST(suite, TestFreeImageIcs_MetaDataAdd);
+	SUITE_ADD_TEST(suite, TestFreeImageIcs_IsIcsFileTest);
 
 	return suite;
 }

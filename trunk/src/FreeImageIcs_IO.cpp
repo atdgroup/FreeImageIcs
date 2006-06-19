@@ -622,7 +622,7 @@ SaveFIBToIcsPointer (FIBITMAP *src, ICS* ics)
 int DLL_CALLCONV
 FreeImageIcs_IsIcsFile (const char *filepath)
 {
-	return IcsVersion (filepath, 1) ? 1 : 0;
+	return IcsVersion (filepath, 0) ? 1 : 0;
 }
 
 int DLL_CALLCONV
