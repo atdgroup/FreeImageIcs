@@ -1,11 +1,8 @@
 /*
- * libics. ICS version 2.0 and 1.0 reading and writing.
+ * libics: Image Cytometry Standard file reading and writing.
  *
- * Copyright (C) 2000-2002          Cris L. Luengo Hendriks
- *                                  Pattern Recognition Group
- *                                  Delft University of Technology
- *                                  The Netherlands
- * mailto: cris@ph.tn.tudelft.nl
+ * Copyright (C) 2000-2006 Cris Luengo and others
+ * email: clluengo@users.sourceforge.net
  *
  * Large chunks of this library written by
  *    Bert Gijsbers
@@ -32,8 +29,6 @@
  *
  * This is the main include file, and the only file you need to include in your
  * source code if you use the top-level functions in this library.
- *
- * Last change: November 4, 2002
  */
 
 #ifndef LIBICS_H
@@ -43,7 +38,7 @@
 extern "C" {
 #endif
 
-#define ICSLIB_VERSION "1.3"
+#define ICSLIB_VERSION "1.5a" /* also defined in configure.in */
 
 #if defined(__WIN32__) && !defined(WIN32)
 #define WIN32
@@ -51,9 +46,6 @@ extern "C" {
 
 #ifdef WIN32
 /*** Windows Specifics ***/
-
-#define MAXPATHLEN 260 /* This is the value found in windef.h, which I don't
-                          want to include here. */
 
 #ifdef BUILD_ICSLIB
 #define ICSEXPORT __declspec(dllexport)
@@ -67,24 +59,21 @@ extern "C" {
 
 /*** End of Windows Specifics ***/
 #else
-/*** UNIX Specifics ***/
 
-#include <sys/param.h> /* Definition for MAXPATHLEN */
 #define ICSEXPORT
 
-/*** End of UNIX Specifics ***/
 #endif
 
 /* For the moment the largest imel is a double complex of 16 bytes: */
 #define ICS_MAX_IMEL_SIZE 16
 
 /* These determine the sizes of static arrays and strings: */
-#define ICS_MAXDIM 5         /* number of allowed dimensions in the image */
+#define ICS_MAXDIM 10        /* number of allowed dimensions in the image */
 #define ICS_MAX_LAMBDA 16    /* number of allowed sensor channels */
-#define ICS_STRLEN_PARAM 10  /* length of a parameter string */
 #define ICS_STRLEN_TOKEN 20  /* length of a token string */
 #define ICS_STRLEN_OTHER 128 /* length of other strings */
 #define ICS_LINE_LENGTH 256  /* the maximum length of each of the lines in the .ics file. */
+#define ICS_MAXPATHLEN 512   /* the maximum length of the file names */
 
 /*
  * These are the known data types for imels. If you use another type,
@@ -109,9 +98,18 @@ typedef enum {
  */
 typedef enum {
     IcsCompr_uncompressed = 0, /* No compression */
-    IcsCompr_compress,         /* Using Zlib (ICS_ZLIB must be defined) */
-    IcsCompr_gzip              /* Using Zlib too (ICS_ZLIB must be defined) */
+    IcsCompr_compress,         /* Using 'compress' (but when writing converted to gzip) */
+    IcsCompr_gzip              /* Using Zlib (ICS_ZLIB must be defined) */
 } Ics_Compression;
+
+/*
+ * These are the file modes:
+ */
+typedef enum {
+    IcsFileMode_write,   /* Write mode */
+    IcsFileMode_read,    /* Read mode */
+    IcsFileMode_update   /* Read-Write mode: change only meta-data, read any header item */
+} Ics_FileMode;
 
 /*
  * These are structures that define the image representation. They are
@@ -121,7 +119,7 @@ typedef struct {
     size_t Size;                               /* Number of imels in this dimension */
     double Origin;                             /* Position of first imel */
     double Scale;                              /* Distance between imels */
-    char Order[ICS_STRLEN_PARAM];              /* Order of this dimension */
+    char Order[ICS_STRLEN_TOKEN];              /* Order of this dimension */
     char Label[ICS_STRLEN_TOKEN];              /* Label for this dimension */
     char Unit[ICS_STRLEN_TOKEN];               /* Units for Origin and Scale */
 } Ics_DataRepresentation;
@@ -141,28 +139,26 @@ typedef struct {
  */
 typedef struct _ICS {
     int Version;                               /* ICS version: 1 for v.1.0, 2 for v.2.0 */
-    int Reading;                               /* 1 if open to read, 0 if open to
-                                                  write. Used by top-level only */
-    const void* Data;                          /* Pointer to the data to write */
+    Ics_FileMode FileMode;                     /* How the ICS file was opened. Used by top-level only */
+    void const* Data;                          /* Pointer to the data to write */
     size_t DataLength;                         /* Size of the data buffer */
-    char Filename[MAXPATHLEN];                 /* '.ics' filename (including path) */
+    size_t const* DataStrides;                 /* Distance in pixels to the neighbors (writing only) */
+    char Filename[ICS_MAXPATHLEN];             /* '.ics' filename (including path) */
     int Dimensions;                            /* Number of elements in Dim */
     Ics_DataRepresentation Dim[ICS_MAXDIM];    /* Image representaion */
     Ics_ImelRepresentation Imel;               /* Imel representation */
     char Coord[ICS_STRLEN_TOKEN];              /* Coordinate system used */
     Ics_Compression Compression;               /* Compression technique used */
     int CompLevel;                             /* Parameter for the compression */
-    int ByteOrder[ICS_MAX_IMEL_SIZE];          /* Byte  storage order */
-    char* History;                             /* Some extra ICS information (history
-                                                  and stuff) */
-    size_t HistorySize;                        /* Size of the buffer allocated for
-                                                  the history stuff */
+    int ByteOrder[ICS_MAX_IMEL_SIZE];          /* Byte storage order */
+    char* History;                             /* Some extra ICS information (history and stuff) */
+    size_t HistorySize;                        /* Size of the buffer allocated for the history stuff */
 
     /* To read the data in blocks we need this: */
     void* BlockRead;                           /* Contains the status of the data file */
 
-    /* New version 2.0 parameters: */
-    char SrcFile[MAXPATHLEN];                  /* Source file name */
+    /* New ICS v. 2.0 parameters: */
+    char SrcFile[ICS_MAXPATHLEN];              /* Source file name */
     size_t SrcOffset;                          /* Offset into source file */
 
     /* Special microscopic parameters: */
@@ -187,32 +183,32 @@ typedef struct _ICS {
 typedef enum {
     IcsErr_Ok = 0,
     IcsErr_FSizeConflict,       /* Non fatal error: unexpected data size */
-    IcsErr_OutputNotFilled,     /* Non fatal error: the output buffer could not be
-                                   completely filled (meaning that your buffer was
-                                   too large) */
+    IcsErr_OutputNotFilled,     /* Non fatal error: the output buffer could not be completely filled (meaning that your buffer was too large) */
     IcsErr_Alloc,               /* Memory allocation error */
     IcsErr_BitsVsSizeConfl,     /* Image size conflicts with bits per element */
     IcsErr_BufferTooSmall,      /* The buffer was too small to hold the given ROI */
     IcsErr_CompressionProblem,  /* Some error occurred during compression */
     IcsErr_CorruptedStream,     /* The compressed input stream is currupted */
     IcsErr_DecompressionProblem,/* Some error occurred during decompression */
-    IcsErr_DuplicateData,       /* The ICS data structure already contains
-                                   incompatible stuff */
+    IcsErr_DuplicateData,       /* The ICS data structure already contains incompatible stuff */
     IcsErr_EmptyField,          /* Empty field (intern error) */
     IcsErr_EndOfHistory,        /* All history lines have already been returned */
     IcsErr_EndOfStream,         /* Unexpected end of stream */
     IcsErr_FailWriteLine,       /* Failed to write a line in .ics file */
     IcsErr_FCloseIcs,           /* File close error on .ics file */
     IcsErr_FCloseIds,           /* File close error on .ids file */
+    IcsErr_FCopyIds,            /* Failed to copy image data from temporary file on .ics file opened for updating */
     IcsErr_FOpenIcs,            /* File open error on .ics file */
     IcsErr_FOpenIds,            /* File open error on .ids file */
     IcsErr_FReadIcs,            /* File read error on .ics file */
     IcsErr_FReadIds,            /* File read error on .ids file */
+    IcsErr_FTempMoveIcs,        /* Failed to remane .ics file opened for updating */
     IcsErr_FWriteIcs,           /* File write error on .ics file */
     IcsErr_FWriteIds,           /* File write error on .ids file */
     IcsErr_HistoryCorrupt,      /* The history buffer is corrupt. Sorry? */
     IcsErr_IllegalROI,          /* The given ROI extends outside the image */
     IcsErr_IllIcsToken,         /* Illegal Ics token detected */
+    IcsErr_IllParameter,        /* A function parameter has a value that is not legal or does not match with a value previously given */
     IcsErr_LineOverflow,        /* Line overflow in ics file */
     IcsErr_MissBits,            /* Missing "bits" element in .ics file */
     IcsErr_MissCat,             /* Missing main category */
@@ -230,7 +226,8 @@ typedef enum {
     IcsErr_TooManyChans,        /* Too many channels specified */
     IcsErr_TooManyDims,         /* Data has too many dimensions */
     IcsErr_UnknownCompression,  /* Unknown compression type */
-    IcsErr_UnknownDataType      /* The datatype is not recognized */
+    IcsErr_UnknownDataType,     /* The datatype is not recognized */
+    IcsErr_WrongZlibVersion     /* libics is linking to a different version of zlib than used during compilation */
 } Ics_Error;
 
 /* Used by IcsGetHistoryString */
@@ -243,45 +240,49 @@ typedef enum {
  * Function declarations and short explanation:
  */
 
-ICSEXPORT const char* IcsGetLibVersion (void);
+ICSEXPORT char const* IcsGetLibVersion (void);
 /* Returns a string that can be used to compare with ICSLIB_VERSION to check
  * if the version of the library is the same as that of the headers. */
 
-ICSEXPORT int IcsVersion (const char* filename);
-/* Returns 0 if it is not an ICS file, or the version number if it is. */
+ICSEXPORT int IcsVersion (char const* filename, int forcename);
+/* Returns 0 if it is not an ICS file, or the version number if it is.
+ * If forcename is non-zero, no extension is appended. */
 
-ICSEXPORT Ics_Error IcsLoadPreview (const char* filename, size_t planenumber,
-                void** dest, size_t *xsize, size_t *ysize);
+ICSEXPORT Ics_Error IcsLoadPreview (char const* filename, size_t planenumber,
+                void** dest, size_t* xsize, size_t* ysize);
 /* Read a preview (2D) image out of an ICS file. The buffer is malloc'd, xsize
  * and ysize are set to the image size. The data type is always uint8. You need
  * to free() the data block when you're done. */
 
-ICSEXPORT Ics_Error IcsOpen (ICS* *ics, const char* filename, const char* mode);
+ICSEXPORT Ics_Error IcsOpen (ICS* *ics, char const* filename, char const* mode);
 /* Open an ICS file for reading (mode = "r") or writing (mode = "w").
  * When writing, append a "2" to the mode string to create an ICS version
- * 2.0 file. */
+ * 2.0 file. Append an "f" to mode if, when reading, you want to force the file
+ * name to not change (no ".ics" is appended). Append a "l" to mode if, when
+ * writing, you don't want the locale forced to "C" (to read ICS files written
+ * with some other locale, set the locale properly then open the file with "rl") */
 
 ICSEXPORT Ics_Error IcsClose (ICS* ics);
 /* Close the ICS file. The ics 'stream' is no longer valid after this.
  * No files are actually written until this function is called. */
 
-ICSEXPORT Ics_Error IcsGetLayout (ICS* ics, Ics_DataType* dt, int *ndims, size_t* dims);
+ICSEXPORT Ics_Error IcsGetLayout (ICS const* ics, Ics_DataType* dt, int* ndims, size_t* dims);
 /* Retrieve the layout of an ICS image. Only valid if reading. */
 
-ICSEXPORT Ics_Error IcsSetLayout (ICS* ics, Ics_DataType dt, int ndims, const size_t* dims);
+ICSEXPORT Ics_Error IcsSetLayout (ICS* ics, Ics_DataType dt, int ndims, size_t const* dims);
 /* Set the layout for an ICS image. Only valid if writing. */
 
-ICSEXPORT size_t IcsGetDataSize (ICS* ics);
-ICSEXPORT size_t IcsGetImelSize (ICS* ics);
-ICSEXPORT size_t IcsGetImageSize (ICS* ics);
+ICSEXPORT size_t IcsGetDataSize (ICS const* ics);
+ICSEXPORT size_t IcsGetImelSize (ICS const* ics);
+ICSEXPORT size_t IcsGetImageSize (ICS const* ics);
 /* These three functions retrieve info from the ICS file.
  * IcsGetDataSize(ics) == IcsGetImelSize(ics) * IcsGetImageSize(ics) */
 
 ICSEXPORT Ics_Error IcsGetData (ICS* ics, void* dest, size_t n);
 /* Read the actual image data from an ICS file. Only valid if reading. */
 
-ICSEXPORT Ics_Error IcsGetROIData (ICS* ics, const size_t* offset,
-               const size_t* size, const size_t* sampling,
+ICSEXPORT Ics_Error IcsGetROIData (ICS* ics, size_t const* offset,
+               size_t const* size, size_t const* sampling,
                void* dest, size_t n);
 /* Read a square region of the actual image from an ICS file. To use the defaults
  * in one of the parameters, set the pointer to NULL. Only valid if reading. */
@@ -299,83 +300,88 @@ ICSEXPORT Ics_Error IcsGetPreviewData (ICS* ics, void* dest, size_t n,
 /* Read a plane of the actual image data from an ICS file, and convert it
  * to uint8. Only valid if reading. */
 
-ICSEXPORT Ics_Error IcsSetData (ICS* ics, const void* src, size_t n);
+ICSEXPORT Ics_Error IcsSetData (ICS* ics, void const* src, size_t n);
 /* Set the image data for an ICS image. The pointer to this data must
  * be accessible until IcsClose has been called. Only valid if writing. */
 
-ICSEXPORT Ics_Error IcsSetSource (ICS* ics, const char* fname, size_t offset);
+ICSEXPORT Ics_Error IcsSetDataWithStrides (ICS* ics, void const* src, size_t n,
+               size_t const* strides, int ndims);
+/* Set the image data for an ICS image. The pointer to this data must
+ * be accessible until IcsClose has been called. Only valid if writing. */
+
+ICSEXPORT Ics_Error IcsSetSource (ICS* ics, char const* fname, size_t offset);
 /* Set the image source parameter for an ICS version 2.0 file. Only
  * valid if writing. */
 
 ICSEXPORT Ics_Error IcsSetCompression (ICS* ics, Ics_Compression compression, int level);
 /* Set the compression method and compression parameter. Only valid if writing. */
 
-ICSEXPORT Ics_Error IcsAddHistory (ICS* ics, const char* key, const char* stuff);
+ICSEXPORT Ics_Error IcsAddHistory (ICS* ics, char const* key, char const* stuff);
 /* Add history lines to the ICS file. Only valid if writing. */
 
 ICSEXPORT Ics_Error IcsGetHistoryString (ICS* ics, char* history, Ics_HistoryWhich which);
 /* Get HISTORY lines from the ICS file. history must have at least ICS_LINE_LENGTH
  * characters allocated. Only valid if reading. */
 
-ICSEXPORT Ics_Error IcsGetNumHistoryStrings (ICS* ics, int *num);
+ICSEXPORT Ics_Error IcsGetNumHistoryStrings (ICS* ics, int* num);
 /* Get the number of HISTORY lines from the ICS file. Only valid if reading. */
 
-ICSEXPORT Ics_Error IcsGetPosition (ICS* ics, int dimension, double *origin,
-                                    double *scale, char* units);
+ICSEXPORT Ics_Error IcsGetPosition (ICS const* ics, int dimension, double* origin,
+                                    double* scale, char* units);
 /* Get the position of the image in the real world: the origin of the first
  * pixel, the distances between pixels and the units in which to measure.
  * If you are not interested in one of the parameters, set the pointer to NULL.
  * Dimensions start at 0. Only valid if reading. */
 
 ICSEXPORT Ics_Error IcsSetPosition (ICS* ics, int dimension, double origin,
-                                    double scale, const char* units);
+                                    double scale, char const* units);
 /* Set the position of the image in the real world: the origin of the first
  * pixel, the distances between pixels and the units in which to measure.
  * If units is NULL or empty, it is set to the default value of "undefined".
  * Dimensions start at 0. Only valid if writing. */
 
-ICSEXPORT Ics_Error IcsGetOrder (ICS* ics, int dimension, char* order, char* label);
+ICSEXPORT Ics_Error IcsGetOrder (ICS const* ics, int dimension, char* order, char* label);
 /* Get the ordering of the dimensions in the image. The ordering is defined
  * by names and labels for each dimension. The defaults are x, y, z, t (time)
  * and p (probe). Dimensions start at 0. Only valid if reading. */
 
-ICSEXPORT Ics_Error IcsSetOrder (ICS* ics, int dimension, const char* order,
-                                 const char* label);
+ICSEXPORT Ics_Error IcsSetOrder (ICS* ics, int dimension, char const* order,
+                                 char const* label);
 /* Set the ordering of the dimensions in the image. The ordering is defined
  * by providing names and labels for each dimension. The defaults are
  * x, y, z, t (time) and p (probe). Dimensions start at 0. Only valid if writing. */
 
-ICSEXPORT Ics_Error IcsGetCoordinateSystem (ICS* ics, char* coord);
+ICSEXPORT Ics_Error IcsGetCoordinateSystem (ICS const* ics, char* coord);
 /* Get the coordinate system used in the positioning of the pixels.
  * Related to IcsGetPosition(). The default is "video". Only valid if
  * reading. */
 
-ICSEXPORT Ics_Error IcsSetCoordinateSystem (ICS* ics, const char* coord);
+ICSEXPORT Ics_Error IcsSetCoordinateSystem (ICS* ics, char const* coord);
 /* Set the coordinate system used in the positioning of the pixels.
  * Related to IcsSetPosition(). The default is "video". Only valid if
  * writing. */
 
-ICSEXPORT Ics_Error IcsGetSignificantBits (ICS* ics, size_t *nbits);
+ICSEXPORT Ics_Error IcsGetSignificantBits (ICS const* ics, size_t* nbits);
 /* Get the number of significant bits. Only valid if reading. */
 
 ICSEXPORT Ics_Error IcsSetSignificantBits (ICS* ics, size_t nbits);
 /* Set the number of significant bits. Only valid if writing. */
 
-ICSEXPORT Ics_Error IcsGetImelUnits (ICS* ics, double *origin, double *scale, char* units);
+ICSEXPORT Ics_Error IcsGetImelUnits (ICS const* ics, double* origin, double* scale, char* units);
 /* Set the position of the pixel values: the offset and scaling, and the
  * units in which to measure. If you are not interested in one of the
  * parameters, set the pointer to NULL. Only valid if reading. */
 
-ICSEXPORT Ics_Error IcsSetImelUnits (ICS* ics, double origin, double scale, const char* units);
+ICSEXPORT Ics_Error IcsSetImelUnits (ICS* ics, double origin, double scale, char const* units);
 /* Set the position of the pixel values: the offset and scaling, and the
  * units in which to measure. If units is NULL or empty, it is set to the
  * default value of "relative". Only valid if writing. */
 
-ICSEXPORT Ics_Error IcsGetScilType (ICS* ics, char* sciltype);
+ICSEXPORT Ics_Error IcsGetScilType (ICS const* ics, char* sciltype);
 /* Get the string for the SCIL_TYPE parameter. This string is used only
  * by SCIL_Image. Only valid if reading. */
 
-ICSEXPORT Ics_Error IcsSetScilType (ICS* ics, const char* sciltype);
+ICSEXPORT Ics_Error IcsSetScilType (ICS* ics, char const* sciltype);
 /* Set the string for the SCIL_TYPE parameter. This string is used only
  * by SCIL_Image. It is required if you want to read the image using
  * SCIL_Image. Only valid if writing. */
@@ -385,7 +391,7 @@ ICSEXPORT Ics_Error IcsGuessScilType (ICS* ics);
  * in the ICS structure. It can create a string for g2d, g3d, f2d, f3d,
  * c2d and c3d. Only valid if writing. */
 
-ICSEXPORT const char* IcsGetErrorText (Ics_Error error);
+ICSEXPORT char const* IcsGetErrorText (Ics_Error error);
 /* Returns a textual representation of an error. */
 
 #ifdef __cplusplus
