@@ -10,7 +10,7 @@ static void
 TestFreeImageIcs_IsIcsFileTest(CuTest* tc)
 {
 	//char *file = "C:\\Documents and Settings\\Glenn\\My Documents\\Test Images\\black_test.jpg";
-	char *file = "C:\\Documents and Settings\\Glenn\\My Documents\\Test Images\\kitten.jpg";
+	char *file = "C:\\Documents and Settings\\Pierce\\My Documents\\Test Images\\kitten.jpg";
 
 	int err = FreeImageIcs_IsIcsFile (file);   
 
@@ -23,13 +23,17 @@ TestFreeImageIcs_MetaDataAdd(CuTest* tc)
 	FreeImageIcsPointer fip;
 	int err;
 
-	char *file = "C:\\Documents and Settings\\Glenn\\Desktop\\rjl.ics";
+	char *file = "C:\\Documents and Settings\\Pierce\\My Documents\\Test Images\\rjl.ics";
 
 	err = FreeImageIcs_OpenIcsFile(&fip, file, "r");
 
 	CuAssertTrue(tc, err != FREEIMAGE_ALGORITHMS_ERROR);
 
 	err = FreeImageIcs_AddIcsHistoryKeyValueStrings(fip, "Glenn Key", "Glenn Value", NULL);
+
+	CuAssertTrue(tc, err != FREEIMAGE_ALGORITHMS_ERROR);
+
+	err = FreeImageIcs_SetIcsHistoryKeyValueStrings(fip, "Test1", "Cool", "Test2", "Cool2", NULL);
 
 	CuAssertTrue(tc, err != FREEIMAGE_ALGORITHMS_ERROR);
 
@@ -43,7 +47,7 @@ CuGetFreeImageIcsTestSuite(void)
 	CuSuite* suite = CuSuiteNew();
 
 	SUITE_ADD_TEST(suite, TestFreeImageIcs_MetaDataAdd);
-	SUITE_ADD_TEST(suite, TestFreeImageIcs_IsIcsFileTest);
+	//SUITE_ADD_TEST(suite, TestFreeImageIcs_IsIcsFileTest);
 
 	return suite;
 }
