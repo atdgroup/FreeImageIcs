@@ -75,12 +75,6 @@ DLL_API int DLL_CALLCONV
 FreeImageIcs_GetFirstIcsHistoryValueWithKey(ICS *ics, char *key, char *value);
 
 
-
-
-
-
-
-
 #ifdef __cplusplus
 }
 #endif

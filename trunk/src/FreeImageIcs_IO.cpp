@@ -935,17 +935,20 @@ FreeImageIcs_LoadFIBFromIcsFile (ICS *ics, int padded)
 }
 
 
-/*
 FIBITMAP* DLL_CALLCONV
 FreeImageIcs_LoadFIBFromIcsFilePath (const char* filepath, int padded)
 {
-	FreeImageIcsPointer fip;
+	ICS *ics;
 
-	FreeImageIcs_OpenIcsFile(&fip, filepath, "r");
+	IcsOpen(&ics, filepath, "rw");
 
-	return FreeImageIcs_LoadFIBFromIcsFile (fip, padded);
+	FIBITMAP *fib = FreeImageIcs_LoadFIBFromIcsFile (ics, padded);
+
+	IcsClose(ics);
+
+	return fib;
 }
-*/
+
 
 int DLL_CALLCONV
 FreeImageIcs_SaveFIBToIcsFile (FIBITMAP *dib, const char *pathname)
