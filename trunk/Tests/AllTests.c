@@ -1,13 +1,13 @@
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <stdio.h>
 
 #include "CuTest.h"
 
-CuSuite* CuGetFreeImageIcsTestSuite();
+#ifdef __cplusplus
+extern "C" {
+#endif
 
+CuSuite*
+CuGetFreeImageIcsTestSuite(void);
 
 void RunAllTests(void)
 {

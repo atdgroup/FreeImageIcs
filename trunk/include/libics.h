@@ -151,8 +151,7 @@ typedef struct _ICS {
     Ics_Compression Compression;               /* Compression technique used */
     int CompLevel;                             /* Parameter for the compression */
     int ByteOrder[ICS_MAX_IMEL_SIZE];          /* Byte storage order */
-    char* History;                             /* Some extra ICS information (history and stuff) */
-    size_t HistorySize;                        /* Size of the buffer allocated for the history stuff */
+    void* History;                             /* History strings */
 
     /* To read the data in blocks we need this: */
     void* BlockRead;                           /* Contains the status of the data file */
@@ -205,9 +204,8 @@ typedef enum {
     IcsErr_FTempMoveIcs,        /* Failed to remane .ics file opened for updating */
     IcsErr_FWriteIcs,           /* File write error on .ics file */
     IcsErr_FWriteIds,           /* File write error on .ids file */
-    IcsErr_HistoryCorrupt,      /* The history buffer is corrupt. Sorry? */
     IcsErr_IllegalROI,          /* The given ROI extends outside the image */
-    IcsErr_IllIcsToken,         /* Illegal Ics token detected */
+    IcsErr_IllIcsToken,         /* Illegal ICS token detected */
     IcsErr_IllParameter,        /* A function parameter has a value that is not legal or does not match with a value previously given */
     IcsErr_LineOverflow,        /* Line overflow in ics file */
     IcsErr_MissBits,            /* Missing "bits" element in .ics file */
@@ -236,6 +234,13 @@ typedef enum {
     IcsWhich_Next               /* Get the next string */
 } Ics_HistoryWhich;
 
+typedef struct {
+    int next;                     /* index into history array, pointing to next string to read,
+                                     set to -1 if there's no more to read. */
+    int previous;                 /* index to previous string, useful for relace and delete. */
+    char key[ICS_STRLEN_TOKEN+1]; /* optional key this iterator looks for. */
+} Ics_HistoryIterator;
+
 /*
  * Function declarations and short explanation:
  */
@@ -249,7 +254,7 @@ ICSEXPORT int IcsVersion (char const* filename, int forcename);
  * If forcename is non-zero, no extension is appended. */
 
 ICSEXPORT Ics_Error IcsLoadPreview (char const* filename, size_t planenumber,
-                void** dest, size_t* xsize, size_t* ysize);
+                                    void** dest, size_t* xsize, size_t* ysize);
 /* Read a preview (2D) image out of an ICS file. The buffer is malloc'd, xsize
  * and ysize are set to the image size. The data type is always uint8. You need
  * to free() the data block when you're done. */
@@ -282,8 +287,8 @@ ICSEXPORT Ics_Error IcsGetData (ICS* ics, void* dest, size_t n);
 /* Read the actual image data from an ICS file. Only valid if reading. */
 
 ICSEXPORT Ics_Error IcsGetROIData (ICS* ics, size_t const* offset,
-               size_t const* size, size_t const* sampling,
-               void* dest, size_t n);
+                                   size_t const* size, size_t const* sampling,
+                                   void* dest, size_t n);
 /* Read a square region of the actual image from an ICS file. To use the defaults
  * in one of the parameters, set the pointer to NULL. Only valid if reading. */
 
@@ -305,7 +310,7 @@ ICSEXPORT Ics_Error IcsSetData (ICS* ics, void const* src, size_t n);
  * be accessible until IcsClose has been called. Only valid if writing. */
 
 ICSEXPORT Ics_Error IcsSetDataWithStrides (ICS* ics, void const* src, size_t n,
-               size_t const* strides, int ndims);
+                                           size_t const* strides, int ndims);
 /* Set the image data for an ICS image. The pointer to this data must
  * be accessible until IcsClose has been called. Only valid if writing. */
 
@@ -315,16 +320,6 @@ ICSEXPORT Ics_Error IcsSetSource (ICS* ics, char const* fname, size_t offset);
 
 ICSEXPORT Ics_Error IcsSetCompression (ICS* ics, Ics_Compression compression, int level);
 /* Set the compression method and compression parameter. Only valid if writing. */
-
-ICSEXPORT Ics_Error IcsAddHistory (ICS* ics, char const* key, char const* stuff);
-/* Add history lines to the ICS file. Only valid if writing. */
-
-ICSEXPORT Ics_Error IcsGetHistoryString (ICS* ics, char* history, Ics_HistoryWhich which);
-/* Get HISTORY lines from the ICS file. history must have at least ICS_LINE_LENGTH
- * characters allocated. Only valid if reading. */
-
-ICSEXPORT Ics_Error IcsGetNumHistoryStrings (ICS* ics, int* num);
-/* Get the number of HISTORY lines from the ICS file. Only valid if reading. */
 
 ICSEXPORT Ics_Error IcsGetPosition (ICS const* ics, int dimension, double* origin,
                                     double* scale, char* units);
@@ -393,6 +388,48 @@ ICSEXPORT Ics_Error IcsGuessScilType (ICS* ics);
 
 ICSEXPORT char const* IcsGetErrorText (Ics_Error error);
 /* Returns a textual representation of an error. */
+
+ICSEXPORT Ics_Error IcsAddHistoryString (ICS* ics, char const* key, char const* value);
+/* Add history lines to the ICS file. key can be NULL */
+#define IcsAddHistory IcsAddHistoryString
+
+ICSEXPORT Ics_Error IcsDeleteHistory (ICS* ics, char const* key);
+/* Delete all history lines with key from ICS file. key can be NULL,
+ * deletes all. */
+
+ICSEXPORT Ics_Error IcsGetNumHistoryStrings (ICS* ics, int* num);
+/* Get the number of HISTORY lines from the ICS file. */
+
+ICSEXPORT Ics_Error IcsGetHistoryString (ICS* ics, char* string,
+                                         Ics_HistoryWhich which);
+/* Get history line from the ICS file. string must have at least
+ * ICS_LINE_LENGTH characters allocated. */
+
+ICSEXPORT Ics_Error IcsGetHistoryKeyValue (ICS* ics, char* key, char* value,
+                                           Ics_HistoryWhich which);
+/* Get history line from the ICS file as key/value pair. key must have
+ * ICS_STRLEN_TOKEN characters allocated, and value ICS_LINE_LENGTH.
+ * key can be null, token will be discarded. */
+
+ICSEXPORT Ics_Error IcsNewHistoryIterator (ICS* ics, Ics_HistoryIterator* it, char const* key);
+/* Initializes history iterator. key can be NULL. */
+
+ICSEXPORT Ics_Error IcsGetHistoryStringI (ICS* ics, Ics_HistoryIterator* it, char* string);
+/* Get history line from the ICS file using iterator. string must have at
+ * least ICS_LINE_LENGTH characters allocated. */
+
+ICSEXPORT Ics_Error IcsGetHistoryKeyValueI (ICS* ics, Ics_HistoryIterator* it,
+                                            char* key, char* value);
+/* Get history line from the ICS file as key/value pair using iterator.
+ * key must have ICS_STRLEN_TOKEN characters allocated, and value
+ * ICS_LINE_LENGTH. key can be null, token will be discarded. */
+
+ICSEXPORT Ics_Error IcsDeleteHistoryStringI (ICS* ics, Ics_HistoryIterator* it);
+/* Delete last retrieved history line (iterator still points to the same string). */
+
+ICSEXPORT Ics_Error IcsReplaceHistoryStringI (ICS* ics, Ics_HistoryIterator* it,
+                                              char const* key, char const* value);
+/* Delete last retrieved history line (iterator still points to the same string). */
 
 #ifdef __cplusplus
 }

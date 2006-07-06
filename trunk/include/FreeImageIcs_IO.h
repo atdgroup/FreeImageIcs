@@ -6,42 +6,34 @@ extern "C" {
 #endif
 
 #include "FreeImageAlgorithms.h"
-
-
-/* Defines 'FreeImageIcsPointer' as a pointer to a structure that is not
- * defined here and so is not accessible to the outside world
- */
-typedef struct FreeImageIcsStr FreeImageIcs, *FreeImageIcsPointer;
+#include "libics.h"
 
 DLL_API int DLL_CALLCONV
 FreeImageIcs_IsIcsFile (const char *filepath);
 
 DLL_API int DLL_CALLCONV
-FreeImageIcs_NumberOfDimensions (FreeImageIcsPointer fip);
+FreeImageIcs_NumberOfDimensions (ICS *ics);
 
 DLL_API int DLL_CALLCONV
-FreeImageIcs_GetLabelForDimension (FreeImageIcsPointer fip, int dimension, char *label);
+FreeImageIcs_GetLabelForDimension (ICS *ics, int dimension, char *label);
 
 DLL_API int DLL_CALLCONV
-FreeImageIcs_GetDimensionDetails (FreeImageIcsPointer fip, int dimension, char* order, char *label, int* size);
+FreeImageIcs_GetDimensionDetails (ICS *ics, int dimension, char* order, char *label, int* size);
 
 DLL_API int DLL_CALLCONV
-FreeImageIcs_IsIcsFileColourFile(FreeImageIcsPointer fip);
-
-DLL_API int DLL_CALLCONV 
-FreeImageIcs_OpenExistingIcsFileInWriteMode(FreeImageIcsPointer *fip, const char *filepath, int maintain_history);
+FreeImageIcs_IsIcsFileColourFile(ICS *ics);
 
 DLL_API int DLL_CALLCONV
-FreeImageIcs_OpenIcsFile(FreeImageIcsPointer *fip, const char *filepath, const char *access_mode);
+FreeImageIcs_OpenIcsFile(ICS *ics, const char *filepath, const char *access_mode);
 
 DLL_API int DLL_CALLCONV
-FreeImageIcs_CloseIcsFile(FreeImageIcsPointer fip);
+FreeImageIcs_CloseIcsFile(ICS *ics);
 
 DLL_API int DLL_CALLCONV
 IsIcsFilePaddded (char *filepath);
 
 DLL_API FIBITMAP* DLL_CALLCONV
-FreeImageIcs_LoadFIBFromIcsFile (FreeImageIcsPointer fip, int padded);
+FreeImageIcs_LoadFIBFromIcsFile (ICS *ics, int padded);
 
 DLL_API FIBITMAP* DLL_CALLCONV
 FreeImageIcs_LoadFIBFromIcsFilePath (const char* filepath, int padded);
@@ -50,13 +42,13 @@ DLL_API int DLL_CALLCONV
 FreeImageIcs_SaveFIBToIcsFile (FIBITMAP *dib, const char *pathname);
 
 DLL_API FIBITMAP* DLL_CALLCONV
-GetIcsDimensionXYImage(FreeImageIcsPointer fip, ...);
+GetIcsDimensionXYImage(ICS *ics, ...);
 
 DLL_API FIBITMAP* DLL_CALLCONV
-GetIcsXYImageForDimensionSlice(FreeImageIcsPointer fip, int dimension, int slice);
+GetIcsXYImageForDimensionSlice(ICS *ics, int dimension, int slice);
 
 DLL_API int DLL_CALLCONV
-FreeImageIcs_GetNumberOfDimensions (FreeImageIcsPointer fip);
+FreeImageIcs_GetNumberOfDimensions (ICS *ics);
 
 #ifdef __cplusplus
 }

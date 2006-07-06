@@ -1,6 +1,5 @@
 #include "FreeImageIcs_IO.h"
 #include "FreeImageIcs_MetaData.h"
-#include "FreeImageIcs_Private.h"
 
 #include "FreeImageAlgorithms_IO.h"
 #include "FreeImageAlgorithms_Utilities.h"
@@ -245,11 +244,8 @@ FreeImageIcs_CreateFIB(BYTE *data, Ics_DataType icsType, int bpp, int width, int
 
 
 FIBITMAP* DLL_CALLCONV
-GetIcsDimensionXYImage(FreeImageIcsPointer fip, ...)
+GetIcsDimensionXYImage(ICS *ics, ...)
 {
-	if(fip == NULL)
-		return NULL;
-
 	Ics_DataType dataType;
 	int ndims;
 	size_t dims[ICS_MAXDIM];
@@ -257,9 +253,13 @@ GetIcsDimensionXYImage(FreeImageIcsPointer fip, ...)
 	// You have to reopen so to make the pointer that IcsSkipDataBlock uses point back to
 	// zero. What can I say ICS API is crap.
 	// We really should patch libics.
-	ReOpenExistingIcsFileInReadMode(fip);
+	if (IcsClose (ics) != IcsErr_Ok)
+   		return FREEIMAGE_ALGORITHMS_ERROR;
 
-	IcsGetLayout (fip->ip, &dataType, &ndims, dims);
+	if(IcsOpen (&ics, ics->Filename, "r") != IcsErr_Ok)
+		return FREEIMAGE_ALGORITHMS_ERROR;
+
+	IcsGetLayout (ics, &dataType, &ndims, dims);
 
 	int count = 0;
 	int dimension = 2;
@@ -267,7 +267,7 @@ GetIcsDimensionXYImage(FreeImageIcsPointer fip, ...)
 	int dimension_index;
 
 	va_list ap;
-	va_start(ap, fip);
+	va_start(ap, ics);
 
 	while((dimension_index = va_arg(ap, int)) >= 0)
 	{
@@ -290,19 +290,19 @@ GetIcsDimensionXYImage(FreeImageIcsPointer fip, ...)
 
 	ArrayReverse(dimensions, ndims - 2);
 	
-	GetTotalDimensionalDataSize(fip->ip, ndims - 1, &size);
+	GetTotalDimensionalDataSize(ics, ndims - 1, &size);
 	size_t bufsize = size;
 
 	for(int i=2; i < ndims; i++) {
 		
-		GetTotalDimensionalDataSize(fip->ip, i, &size);
+		GetTotalDimensionalDataSize(ics, i, &size);
 
 		data_position += (dimensions[i - 2] * size);
 
 		//printf("dimension %d size %d\n", dimensions[i], size);
 	}
 		
-	if(IcsSkipDataBlock  (fip->ip, data_position) != IcsErr_Ok)
+	if(IcsSkipDataBlock  (ics, data_position) != IcsErr_Ok)
 		return NULL;
 
 	BYTE *buf = (BYTE *) malloc (bufsize);
@@ -310,7 +310,7 @@ GetIcsDimensionXYImage(FreeImageIcsPointer fip, ...)
 	if (buf == NULL)
    		return NULL;
 
-	if(IcsGetDataBlock  (fip->ip, buf, bufsize) != IcsErr_Ok) {
+	if(IcsGetDataBlock  (ics, buf, bufsize) != IcsErr_Ok) {
 		free(buf);
 		return NULL;
 	}
@@ -326,11 +326,8 @@ GetIcsDimensionXYImage(FreeImageIcsPointer fip, ...)
 // This function gets the first xy image for the specified splice of the
 // specified dimension. All other dimensions are held at zero.
 DLL_API FIBITMAP* DLL_CALLCONV
-GetIcsXYImageForDimensionSlice(FreeImageIcsPointer fip, int dimension, int slice)
+GetIcsXYImageForDimensionSlice(ICS *ics, int dimension, int slice)
 {
-	if(fip == NULL)
-		return NULL;
-
 	Ics_DataType dataType;
 	int ndims;
 	size_t dims[ICS_MAXDIM];
@@ -338,9 +335,13 @@ GetIcsXYImageForDimensionSlice(FreeImageIcsPointer fip, int dimension, int slice
 	// You have to reopen so to make the pointer that IcsSkipDataBlock uses point back to
 	// zero. What can I say ICS API is crap.
 	// We really should patch libics.
-	ReOpenExistingIcsFileInReadMode(fip);
+	if (IcsClose (ics) != IcsErr_Ok)
+   		return FREEIMAGE_ALGORITHMS_ERROR;
 
-	IcsGetLayout (fip->ip, &dataType, &ndims, dims);
+	if(IcsOpen (&ics, ics->Filename, "r") != IcsErr_Ok)
+		return FREEIMAGE_ALGORITHMS_ERROR;
+
+	IcsGetLayout (ics, &dataType, &ndims, dims);
 
 	if(ndims <= 2)
 		return NULL;
@@ -355,9 +356,9 @@ GetIcsXYImageForDimensionSlice(FreeImageIcsPointer fip, int dimension, int slice
 
 	size_t bufsize;
 
-	GetTotalDimensionalDataSize(fip->ip, dimension, &bufsize);
+	GetTotalDimensionalDataSize(ics, dimension, &bufsize);
 		
-	if(IcsSkipDataBlock  (fip->ip, bufsize * slice) != IcsErr_Ok)
+	if(IcsSkipDataBlock  (ics, bufsize * slice) != IcsErr_Ok)
 		return NULL;
 
 	BYTE *buf = (BYTE *) malloc (bufsize);
@@ -365,7 +366,7 @@ GetIcsXYImageForDimensionSlice(FreeImageIcsPointer fip, int dimension, int slice
 	if (buf == NULL)
    		return NULL;
 
-	if(IcsGetDataBlock  (fip->ip, buf, bufsize) != IcsErr_Ok) {
+	if(IcsGetDataBlock  (ics, buf, bufsize) != IcsErr_Ok) {
 		free(buf);
 		return NULL;
 	}
@@ -626,19 +627,20 @@ FreeImageIcs_IsIcsFile (const char *filepath)
 }
 
 int DLL_CALLCONV
-FreeImageIcs_GetNumberOfDimensions (FreeImageIcsPointer fip)
+FreeImageIcs_GetNumberOfDimensions (ICS *ics)
 {
 	Ics_DataType dt;
 	int ndims;
 	int dims[ICS_MAXDIM];
 
-	if (IcsGetLayout (fip->ip, &dt, &ndims, (size_t *) dims) != IcsErr_Ok)
+	if (IcsGetLayout (ics, &dt, &ndims, (size_t *) dims) != IcsErr_Ok)
    		return 0;
 
 	return ndims;
 }
 
 
+/*
 int
 CopyHistoryStringsToArray(FreeImageIcsPointer fip, char *** history_strings, int *number_of_strings)
 {
@@ -659,95 +661,10 @@ CopyHistoryStringsToArray(FreeImageIcsPointer fip, char *** history_strings, int
 		
 	return FREEIMAGE_ALGORITHMS_SUCCESS;
 }
-
-
-int 
-ReOpenExistingIcsFileInReadMode(FreeImageIcsPointer fip)
-{
-	if (IcsClose (fip->ip) != IcsErr_Ok)
-   		return FREEIMAGE_ALGORITHMS_ERROR;
-
-	if(IcsOpen (&(fip->ip), fip->filepath, "r") != IcsErr_Ok)
-		return FREEIMAGE_ALGORITHMS_ERROR;
-
-	return FREEIMAGE_ALGORITHMS_SUCCESS;
-}
-
-
-/*
-int 
-ReOpenExistingIcsFileInWriteMode(FreeImageIcsPointer fip, bool maintain_history)
-{
-	Ics_DataType dt;
-	Ics_Error err;
-	size_t bufsize;
-	int ndims;
-	int dims[ICS_MAXDIM];
-	char **history_strings = NULL;
-	int number_of_strings;
-
-	if(FreeImageIcs_IsIcsFileInWriteMode(fip))
-		return FREEIMAGE_ALGORITHMS_SUCCESS;  
-
-	if (IcsClose (fip->ip) != IcsErr_Ok)
-   		return FREEIMAGE_ALGORITHMS_ERROR;
-
-	if(IcsOpen (&(fip->ip), fip->filepath, "r") != IcsErr_Ok)
-		return FREEIMAGE_ALGORITHMS_ERROR;
-
-	if (IcsGetLayout (fip->ip, &dt, &ndims, (size_t *) dims) != IcsErr_Ok)
-   		return FREEIMAGE_ALGORITHMS_ERROR;
-
-	bufsize = IcsGetDataSize (fip->ip);
-
-	if((fip->buf = (BYTE *) malloc (bufsize)) == NULL)
-		return FREEIMAGE_ALGORITHMS_ERROR;
-
-	if ((err = IcsGetData (fip->ip, fip->buf, bufsize)) != IcsErr_Ok)
-   		return FREEIMAGE_ALGORITHMS_ERROR;
-
-	if (IcsGetNumHistoryStrings (fip->ip, &number_of_strings) != IcsErr_Ok)
-		return FREEIMAGE_ALGORITHMS_ERROR;
-
-	if(maintain_history) {
-
-		// Save history to array location
-		history_strings = (char **) malloc(sizeof(char*) * number_of_strings);
-
-		CopyHistoryStringsToArray(fip, &history_strings, &number_of_strings);
-	}
-
-	if (IcsClose (fip->ip) != IcsErr_Ok)
-   		return FREEIMAGE_ALGORITHMS_ERROR;
-
-	// Write the file again
-	if(IcsOpen (&(fip->ip), fip->filepath, "w2") != IcsErr_Ok)
-		return FREEIMAGE_ALGORITHMS_ERROR;
-
-	if( IcsSetLayout(fip->ip, dt, ndims, (size_t *) dims) != IcsErr_Ok)
-		return FREEIMAGE_ALGORITHMS_ERROR;
-	
-	if( IcsSetData(fip->ip, fip->buf, bufsize) != IcsErr_Ok)
-		return FREEIMAGE_ALGORITHMS_ERROR;
-	
-	if(maintain_history) {
-
-		for(int i=0; i < number_of_strings; i++) {
-			IcsAddHistory (fip->ip, NULL, history_strings[i]);	
-			free(history_strings[i]);
-		}
-
-		free(history_strings);
-	}
-
-	if( IcsSetCompression (fip->ip, IcsCompr_gzip, 0) != IcsErr_Ok)
-		return FREEIMAGE_ALGORITHMS_ERROR;
-
-	return FREEIMAGE_ALGORITHMS_SUCCESS;  
-}
 */
 
 
+/*
 int 
 ReOpenExistingIcsFileInWriteMode(FreeImageIcsPointer fip, bool maintain_history)
 {
@@ -806,8 +723,9 @@ ReOpenExistingIcsFileInWriteMode(FreeImageIcsPointer fip, bool maintain_history)
 
 	return FREEIMAGE_ALGORITHMS_SUCCESS;  
 }
+*/
 
-
+/*
 int DLL_CALLCONV
 FreeImageIcs_IsIcsFileInWriteMode(FreeImageIcsPointer fip)
 {
@@ -816,7 +734,7 @@ FreeImageIcs_IsIcsFileInWriteMode(FreeImageIcsPointer fip)
 
 	return 0;
 }
-
+*/
 
 static bool file_exists(const char *filepath)
 {
@@ -831,6 +749,7 @@ static bool file_exists(const char *filepath)
 }
 
 
+/*
 int DLL_CALLCONV
 FreeImageIcs_OpenIcsFile(FreeImageIcsPointer *fip, const char *filepath, const char *access_mode)
 {
@@ -872,8 +791,9 @@ FreeImageIcs_OpenIcsFile(FreeImageIcsPointer *fip, const char *filepath, const c
 
 	return FREEIMAGE_ALGORITHMS_SUCCESS;  
 }
+*/
 
-
+/*
 int DLL_CALLCONV
 FreeImageIcs_CloseIcsFile(FreeImageIcsPointer fip)
 {
@@ -891,19 +811,19 @@ FreeImageIcs_CloseIcsFile(FreeImageIcsPointer fip)
 
 	return FREEIMAGE_ALGORITHMS_SUCCESS;  
 }
-
+*/
 
 
 
 int DLL_CALLCONV
-FreeImageIcs_IsIcsFileColourFile(FreeImageIcsPointer fip)
+FreeImageIcs_IsIcsFileColourFile(ICS *ics)
 {
 	Ics_DataType dt;
 	int ndims, channels = 1;
 	int dims[ICS_MAXDIM];
 	char order[10], label[50];
 
-	IcsGetLayout (fip->ip, &dt, &ndims, (size_t *) dims);
+	IcsGetLayout (ics, &dt, &ndims, (size_t *) dims);
 
 	if(ndims != 3)
 		return 0;
@@ -911,7 +831,7 @@ FreeImageIcs_IsIcsFileColourFile(FreeImageIcsPointer fip)
 	// If any of the labels or orders contain a c then it is some form of colour image.
 	for(int i=0; i < 3; i++) {
 		
-		if(IcsGetOrder (fip->ip, i, order, label) != IcsErr_Ok)
+		if(IcsGetOrder (ics, i, order, label) != IcsErr_Ok)
 			return 0;
 
 		if(strcmp(order, "c") == 0)
@@ -922,7 +842,7 @@ FreeImageIcs_IsIcsFileColourFile(FreeImageIcsPointer fip)
 	// They have left it as z. However, they have added some history with key labels 
 	// that does the same thing.
 	
-	if(FreeImageIcs_GetFirstIcsHistoryValueWithKey(fip, "labels", label) != FREEIMAGE_ALGORITHMS_SUCCESS)
+	if(FreeImageIcs_GetFirstIcsHistoryValueWithKey(ics, "labels", label) != FREEIMAGE_ALGORITHMS_SUCCESS)
 		return 0;
 
 	if(strcmp(label, "x y c") == 0)
@@ -933,24 +853,24 @@ FreeImageIcs_IsIcsFileColourFile(FreeImageIcsPointer fip)
 
 
 int DLL_CALLCONV
-FreeImageIcs_NumberOfDimensions (FreeImageIcsPointer fip)
+FreeImageIcs_NumberOfDimensions (ICS *ics)
 {
 	Ics_DataType dt;
 	int ndims;
 	int dims[ICS_MAXDIM];
 	
-	IcsGetLayout (fip->ip, &dt, &ndims, (size_t *) dims);
+	IcsGetLayout (ics, &dt, &ndims, (size_t *) dims);
 
 	return ndims;
 }
 
 
 int DLL_CALLCONV
-FreeImageIcs_GetLabelForDimension (FreeImageIcsPointer fip, int dimension, char *label)
+FreeImageIcs_GetLabelForDimension (ICS *ics, int dimension, char *label)
 {
 	char labels[ICS_LINE_LENGTH];
 
-	FreeImageIcs_GetFirstIcsHistoryValueWithKey(fip, "labels", labels);
+	FreeImageIcs_GetFirstIcsHistoryValueWithKey(ics, "labels", labels);
 
 	char *result = strtok(labels, " ");
 
@@ -972,16 +892,16 @@ FreeImageIcs_GetLabelForDimension (FreeImageIcsPointer fip, int dimension, char 
 
 
 int DLL_CALLCONV
-FreeImageIcs_GetDimensionDetails (FreeImageIcsPointer fip, int dimension, char* order, char *label, int* size)
+FreeImageIcs_GetDimensionDetails (ICS *ics, int dimension, char* order, char *label, int* size)
 {	
 	Ics_DataType dt;
 	int ndims, channels = 1;
 	int dims[ICS_MAXDIM];
 	
-	IcsGetLayout (fip->ip, &dt, &ndims, (size_t *) dims);
+	IcsGetLayout (ics, &dt, &ndims, (size_t *) dims);
 
-	IcsGetOrder  (fip->ip, dimension, order, label);
-	FreeImageIcs_GetLabelForDimension (fip, dimension, label);
+	IcsGetOrder  (ics, dimension, order, label);
+	FreeImageIcs_GetLabelForDimension (ics, dimension, label);
 
 	*size = dims[dimension];
 
@@ -990,30 +910,32 @@ FreeImageIcs_GetDimensionDetails (FreeImageIcsPointer fip, int dimension, char* 
 
 
 FIBITMAP* DLL_CALLCONV
-FreeImageIcs_LoadFIBFromIcsFile (FreeImageIcsPointer fip, int padded)
+FreeImageIcs_LoadFIBFromIcsFile (ICS *ics, int padded)
 {
 	FIBITMAP *dib;
 	Ics_DataType dt;
 	int ndims, channels = 1;
 	int dims[ICS_MAXDIM];
 	
-	IcsGetLayout (fip->ip, &dt, &ndims, (size_t *) dims);
+	IcsGetLayout (ics, &dt, &ndims, (size_t *) dims);
 
 	if( ndims >= 3 ) {
 
-		if(FreeImageIcs_IsIcsFileColourFile(fip))
-			dib = LoadFIBFromColourIcsFile (fip->ip, padded); 
+		if(FreeImageIcs_IsIcsFileColourFile(ics))
+			dib = LoadFIBFromColourIcsFile (ics, padded); 
 		else {
-			dib = GetIcsXYImageForDimensionSlice(fip, 2, 0);
+			dib = GetIcsXYImageForDimensionSlice(ics, 2, 0);
 		}
 	}
 	else {
-		dib = LoadFIBFromGreyScaleIcsFile (fip->ip, padded); 
+		dib = LoadFIBFromGreyScaleIcsFile (ics, padded); 
 	}
 	
 	return dib;
 }
 
+
+/*
 FIBITMAP* DLL_CALLCONV
 FreeImageIcs_LoadFIBFromIcsFilePath (const char* filepath, int padded)
 {
@@ -1023,6 +945,7 @@ FreeImageIcs_LoadFIBFromIcsFilePath (const char* filepath, int padded)
 
 	return FreeImageIcs_LoadFIBFromIcsFile (fip, padded);
 }
+*/
 
 int DLL_CALLCONV
 FreeImageIcs_SaveFIBToIcsFile (FIBITMAP *dib, const char *pathname)

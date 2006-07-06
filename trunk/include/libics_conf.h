@@ -43,11 +43,10 @@
 #define ICS_MIN_DOUBLE 0.001
 
 /*
- * ICS_BUFFSIZE_INCREMENT sets the increment for the buffer allocated
- * to contain the history stuff until written to file.
- * It's good if this is larger than ICS_LINE_LENGTH (in libics.h).
+ * ICS_HISTARRAY_INCREMENT sets the increment for the array allocated
+ * to contain the history strings.
  */
-#define ICS_BUFFSIZE_INCREMENT 2048
+#define ICS_HISTARRAY_INCREMENT 1024
 
 /*
  * ICS_BUF_SIZE is the size of the buffer allocated to:

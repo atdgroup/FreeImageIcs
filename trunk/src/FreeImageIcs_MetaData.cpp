@@ -1,6 +1,5 @@
 #include "FreeImageIcs_MetaData.h"
 #include "FreeImageIcs_IO.h"
-#include "FreeImageIcs_Private.h"
 
 #include <iostream>
 
@@ -19,100 +18,18 @@ str_strlwr(char *s)
 }
 
 int DLL_CALLCONV
-FreeImageIcs_GetIcsHistoryStringCount(FreeImageIcsPointer fip)
+FreeImageIcs_GetIcsHistoryStringCount(ICS *ics)
 {
 	int number_of_history_strings;
 	
 	/* Get ICS history */
-	if (IcsGetNumHistoryStrings  (fip->ip, &number_of_history_strings) != IcsErr_Ok)
+	if (IcsGetNumHistoryStrings  (ics, &number_of_history_strings) != IcsErr_Ok)
 		return 0;
 
 	if(!number_of_history_strings)
 		return 0;
 	
 	return number_of_history_strings;
-}
-
-
-FreeImageIcsHistoryIterator DLL_CALLCONV
-FreeImageIcs_GetIcsHistoryBeginIterator(FreeImageIcsPointer fip)
-{
-	fip->number_of_history_strings = FreeImageIcs_GetIcsHistoryStringCount(fip);
-
-	if(!fip->number_of_history_strings)
-		return FREEIMAGE_ALGORITHMS_ERROR;
-
-	fip->iterator = 1;
-
-	return fip->iterator;
-}
-
-FreeImageIcsHistoryIterator DLL_CALLCONV
-FreeImageIcs_GetIcsHistoryEndIterator(FreeImageIcsPointer fip)
-{
-	return fip->number_of_history_strings + 1;
-}
-
-
-FreeImageIcsHistoryIterator DLL_CALLCONV
-FreeImageIcs_GetIcsHistoryNextIterator(FreeImageIcsPointer fip)
-{
-	if(fip->iterator <= fip->number_of_history_strings)
-		++(fip->iterator);
-
-	return fip->iterator;
-}
-
-
-int DLL_CALLCONV
-FreeImageIcs_GetIcsHistoryString(FreeImageIcsPointer fip, FreeImageIcsHistoryIterator iterator, char *history_string)
-{
-	if(!fip->number_of_history_strings)
-		return FREEIMAGE_ALGORITHMS_ERROR;
-
-	for(int i=1; i <= iterator; i++)
-		IcsGetHistoryString (fip->ip, history_string, (i > 1) ? IcsWhich_Next : IcsWhich_First);	
-
-	return FREEIMAGE_ALGORITHMS_SUCCESS;
-}
-
-int DLL_CALLCONV
-FreeImageIcs_GetIcsHistoryKeyValue(FreeImageIcsPointer fip, FreeImageIcsHistoryIterator iterator, char *key, char *value)
-{
-	char history_string[ICS_LINE_LENGTH];
-
-	FreeImageIcs_GetIcsHistoryString(fip, iterator, history_string);
-
-	if(FreeImageIcs_SplitHistoryString(history_string, key, value) == FREEIMAGE_ALGORITHMS_ERROR) // can't find the splitting character
-		return FREEIMAGE_ALGORITHMS_ERROR;
-
-	return FREEIMAGE_ALGORITHMS_SUCCESS;
-}
-
-
-FreeImageIcsHistoryIterator DLL_CALLCONV
-FreeImageIcs_GetIcsHistoryIteratorForKey(FreeImageIcsPointer fip, FreeImageIcsHistoryIterator start_iterator, char *key)
-{
-	char found_value[ICS_LINE_LENGTH];
-	char search_key[ICS_LINE_LENGTH];
-	char found_key[ICS_LINE_LENGTH];
-
-	strcpy(search_key, key);
-
-	while(start_iterator != FreeImageIcs_GetIcsHistoryEndIterator(fip)) {
-
-		FreeImageIcs_GetIcsHistoryKeyValue(fip, start_iterator, found_key, found_value);
-
-		str_strlwr(found_key);
-		str_strlwr(search_key);
-
-		if(strcmp(search_key, found_key) == 0)	
-			return start_iterator;
-
-		start_iterator = FreeImageIcs_GetIcsHistoryNextIterator(fip);
-	}
-
-	return FREEIMAGE_ALGORITHMS_ERROR;
 }
 
 
@@ -149,87 +66,49 @@ FreeImageIcs_JoinKeyValueIntoHistoryString(char *history_string, char *key, char
 
 
 int DLL_CALLCONV
-FreeImageIcs_GetFirstIcsHistoryValueWithKey(FreeImageIcsPointer fip, char *key, char *value)
+FreeImageIcs_GetFirstIcsHistoryValueWithKey(ICS *ics, char *key, char *value)
 {
-	char found_value[ICS_LINE_LENGTH];
-	char found_key[ICS_LINE_LENGTH];
+	Ics_HistoryIterator it;     
 
-	FreeImageIcsHistoryIterator iterator = FreeImageIcs_GetIcsHistoryBeginIterator(fip);
+	if(IcsNewHistoryIterator (ics, &it, key) != IcsErr_Ok)
+		return FREEIMAGE_ALGORITHMS_ERROR;	
 
-	FreeImageIcsHistoryIterator found_iterator = FreeImageIcs_GetIcsHistoryIteratorForKey(fip, iterator, key);
-
-	if(found_iterator == FREEIMAGE_ALGORITHMS_ERROR)
-		return FREEIMAGE_ALGORITHMS_ERROR;		
-
-	FreeImageIcs_GetIcsHistoryKeyValue(fip, found_iterator, found_key, found_value);
-
-	strcpy(value, found_value);
+	if(IcsGetHistoryKeyValueI (ics, &it, NULL, value) != IcsErr_Ok)
+		return FREEIMAGE_ALGORITHMS_ERROR;	
 
 	return FREEIMAGE_ALGORITHMS_SUCCESS;
 }
 
 
 int DLL_CALLCONV
-FreeImageIcs_ReplaceIcsHistoryValueForKey(FreeImageIcsPointer fip, char *key, char *value)
+FreeImageIcs_ReplaceIcsHistoryValueForKey(ICS *ics, char *key, char *value)
 {
-	char history_key[ICS_LINE_LENGTH], search_key[ICS_LINE_LENGTH];
-	char history_value[ICS_LINE_LENGTH], history_string[ICS_LINE_LENGTH];
-	char **history_strings = NULL;
-	int number_of_strings;
+	Ics_HistoryIterator it;     
 
-	strcpy(search_key, key);
-	strlwr(search_key);
+	if(IcsNewHistoryIterator (ics, &it, key) != IcsErr_Ok)
+		return FREEIMAGE_ALGORITHMS_ERROR;	
 
-	if (IcsGetNumHistoryStrings (fip->ip, &number_of_strings) != IcsErr_Ok)
-		return FREEIMAGE_ALGORITHMS_ERROR;
+	if(IcsReplaceHistoryStringI (ics, &it, key, value) != IcsErr_Ok)
+		return FREEIMAGE_ALGORITHMS_ERROR;	
 
-	// Save history to array location
-	history_strings = (char **) malloc(sizeof(char*) * number_of_strings);
-
-	CopyHistoryStringsToArray(fip, &history_strings, &number_of_strings);
-
-	if(ReOpenExistingIcsFileInWriteMode(fip, 0) == FREEIMAGE_ALGORITHMS_ERROR)
-		return FREEIMAGE_ALGORITHMS_ERROR;
-
-	for(int i=0; i < number_of_strings; i++) {
-
-		if(FreeImageIcs_SplitHistoryString(history_strings[i], history_key, history_value) == FREEIMAGE_ALGORITHMS_ERROR) 
-			return FREEIMAGE_ALGORITHMS_ERROR;  // can't find the splitting character
-
-		strlwr(history_key);
-	
-		if(strcmp(search_key, history_key) == 0) {
-
-			FreeImageIcs_JoinKeyValueIntoHistoryString(history_string, key, value);
-			IcsAddHistory (fip->ip, NULL, history_string);	
-		}
-		else
-			IcsAddHistory (fip->ip, NULL, history_strings[i]);	
-
-		free(history_strings[i]);
-	}
-
-	free(history_strings);
-
-	return FREEIMAGE_ALGORITHMS_ERROR;
+	return FREEIMAGE_ALGORITHMS_SUCCESS;
 }
 
 
 int DLL_CALLCONV
-FreeImageIcs_SetIcsHistoryKeyValueStrings(FreeImageIcsPointer fip, ...)
+FreeImageIcs_SetIcsHistoryKeyValueStrings(ICS *ics, ...)
 {
-	if(ReOpenExistingIcsFileInWriteMode(fip, 0) == FREEIMAGE_ALGORITHMS_ERROR)
-		return FREEIMAGE_ALGORITHMS_ERROR;
+	IcsDeleteHistory (ics, NULL);
 
 	char *history_key, *history_string;
 
 	va_list ap;
-	va_start(ap, fip);
+	va_start(ap, ics);
 
 	while((history_key = va_arg(ap, char*)) != NULL)
 	{
 		history_string = va_arg(ap, char*);
-		IcsAddHistory (fip->ip, history_key, history_string);
+		IcsAddHistory (ics, history_key, history_string);
 	}
 			
 	va_end(ap);
@@ -239,18 +118,17 @@ FreeImageIcs_SetIcsHistoryKeyValueStrings(FreeImageIcsPointer fip, ...)
 
 
 int DLL_CALLCONV
-FreeImageIcs_SetIcsHistoryStrings(FreeImageIcsPointer fip, ...)
+FreeImageIcs_SetIcsHistoryStrings(ICS *ics, ...)
 {
-	if(ReOpenExistingIcsFileInWriteMode(fip, 0) == FREEIMAGE_ALGORITHMS_ERROR)
-		return FREEIMAGE_ALGORITHMS_ERROR;
+	IcsDeleteHistory (ics, NULL);
 
 	char *history_string;
 
 	va_list ap;
-	va_start(ap, fip);
+	va_start(ap, ics);
 
 	while((history_string = va_arg(ap, char*)) != NULL)
-		IcsAddHistory (fip->ip, NULL, history_string);
+		IcsAddHistory (ics, NULL, history_string);
 			
 	va_end(ap);
 
@@ -259,59 +137,31 @@ FreeImageIcs_SetIcsHistoryStrings(FreeImageIcsPointer fip, ...)
 
 
 int DLL_CALLCONV
-FreeImageIcs_SetIcsHistoryKeyValueStringsFromArray(FreeImageIcsPointer fip, char **history_strings, int number_of_items)
+FreeImageIcs_SetIcsHistoryKeyValueStringsFromArray(ICS *ics, char **history_strings, int number_of_items)
 {
-	if(ReOpenExistingIcsFileInWriteMode(fip, 0) == FREEIMAGE_ALGORITHMS_ERROR)
-		return FREEIMAGE_ALGORITHMS_ERROR;
+	IcsDeleteHistory (ics, NULL);
 
 	for(int i=0; i < number_of_items; i++)
-		IcsAddHistory (fip->ip, NULL, history_strings[i]);	
+		IcsAddHistory (ics, NULL, history_strings[i]);	
 
 	return FREEIMAGE_ALGORITHMS_SUCCESS; 
 }
 
 
 int DLL_CALLCONV
-FreeImageIcs_AddIcsHistoryString(FreeImageIcsPointer fip, char *history_string)
-{
-	if(ReOpenExistingIcsFileInWriteMode(fip, 1) == FREEIMAGE_ALGORITHMS_ERROR)
-		return FREEIMAGE_ALGORITHMS_ERROR;
-
-	IcsAddHistory (fip->ip, NULL, history_string);	
-
-	return FREEIMAGE_ALGORITHMS_SUCCESS;  
-}
-
-
-int DLL_CALLCONV
-FreeImageIcs_AddIcsHistoryKeyValue(FreeImageIcsPointer fip, char *key, char *value)
-{
-	if(ReOpenExistingIcsFileInWriteMode(fip, 1) == FREEIMAGE_ALGORITHMS_ERROR)
-		return FREEIMAGE_ALGORITHMS_ERROR;
-
-	IcsAddHistory (fip->ip, key, value);
-
-	return FREEIMAGE_ALGORITHMS_SUCCESS;  
-}
-
-
-int DLL_CALLCONV
-FreeImageIcs_AddIcsHistoryKeyValueStrings(FreeImageIcsPointer fip, ...)
+FreeImageIcs_AddIcsHistoryKeyValueStrings(ICS *ics, ...)
 {
 	char **history_strings = NULL;
-
-	if(ReOpenExistingIcsFileInWriteMode(fip, 1) == FREEIMAGE_ALGORITHMS_ERROR)
-		return FREEIMAGE_ALGORITHMS_ERROR;
 
 	char *history_key, *history_string;
 
 	va_list ap;
-	va_start(ap, fip);
+	va_start(ap, ics);
 
 	while((history_key = va_arg(ap, char*)) != NULL)
 	{
 		history_string = va_arg(ap, char*);
-		IcsAddHistory (fip->ip, history_key, history_string);
+		IcsAddHistory (ics, history_key, history_string);
 	}
 			
 	va_end(ap);

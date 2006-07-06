@@ -1,5 +1,7 @@
 #include "CuTest.h"
 
+#include "libics.h"
+
 #include "FreeImageIcs_IO.h"
 #include "FreeImageIcs_MetaData.h"
 
@@ -7,47 +9,44 @@
 
 
 static void
-TestFreeImageIcs_IsIcsFileTest(CuTest* tc)
-{
-	//char *file = "C:\\Documents and Settings\\Glenn\\My Documents\\Test Images\\black_test.jpg";
-	char *file = "C:\\Documents and Settings\\Pierce\\My Documents\\Test Images\\kitten.jpg";
-
-	int err = FreeImageIcs_IsIcsFile (file);   
-
-	CuAssertTrue(tc, err != FREEIMAGE_ALGORITHMS_ERROR);
-}
-
-static void
 TestFreeImageIcs_MetaDataAdd(CuTest* tc)
 {
-	FreeImageIcsPointer fip;
-	int err;
+	ICS *ics;
+	Ics_Error err;
+	int fiError;
+	char value[200];
 
-	char *file = "C:\\Documents and Settings\\Pierce\\My Documents\\Test Images\\rjl.ics";
+	char *file = "C:\\Documents and Settings\\Pierce\\Desktop\\rjl.ics";
 
-	err = FreeImageIcs_OpenIcsFile(&fip, file, "r");
+	err = IcsOpen (&ics, file, "rw");
 
-	CuAssertTrue(tc, err != FREEIMAGE_ALGORITHMS_ERROR);
+	CuAssertTrue(tc, err == IcsErr_Ok);
 
-	err = FreeImageIcs_AddIcsHistoryKeyValueStrings(fip, "Glenn Key", "Glenn Value", NULL);
+	fiError = FreeImageIcs_AddIcsHistoryKeyValueStrings(ics, "Glenn Key", "Glenn Value", NULL);
 
-	CuAssertTrue(tc, err != FREEIMAGE_ALGORITHMS_ERROR);
+	FreeImageIcs_GetFirstIcsHistoryValueWithKey(ics, "Glenn Key", value);
 
-	err = FreeImageIcs_SetIcsHistoryKeyValueStrings(fip, "Test1", "Cool", "Test2", "Cool2", NULL);
+	CuAssertTrue(tc, strcmp(value, "Glenn Value") == 0);
 
-	CuAssertTrue(tc, err != FREEIMAGE_ALGORITHMS_ERROR);
 
-	FreeImageIcs_CloseIcsFile(fip);
+	//CuAssertTrue(tc, fiError == FREEIMAGE_ALGORITHMS_ERROR);
+
+	//FreeImageIcs_SetIcsHistoryStrings(ics, "Glenn New Key", "Glenn New Value", NULL);
+	//FreeImageIcs_SetIcsHistoryKeyValueStrings(ics, "Glenn New Key", "Glenn New Value",
+	//	"Glenn New Key1", "Glenn New Value1", NULL);
+
+	//FreeImageIcs_AddIcsHistoryKeyValueStrings(ics, "Help1", "Help1_Val","Help2", "Help2_Val", NULL);
+
+	IcsClose(ics);
 }
 
 
-CuSuite* DLL_CALLCONV
+CuSuite*
 CuGetFreeImageIcsTestSuite(void)
 {
 	CuSuite* suite = CuSuiteNew();
 
 	SUITE_ADD_TEST(suite, TestFreeImageIcs_MetaDataAdd);
-	//SUITE_ADD_TEST(suite, TestFreeImageIcs_IsIcsFileTest);
 
 	return suite;
 }
