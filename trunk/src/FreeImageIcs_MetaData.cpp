@@ -168,3 +168,10 @@ FreeImageIcs_AddIcsHistoryKeyValueStrings(ICS *ics, ...)
 
 	return FREEIMAGE_ALGORITHMS_SUCCESS;  
 }
+
+
+int DLL_CALLCONV
+IsIcsHistoryIteratorValid (ICS* ics, Ics_HistoryIterator* it)
+{
+	return it->next;
+}

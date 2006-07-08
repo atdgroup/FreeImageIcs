@@ -75,6 +75,13 @@ DLL_API int DLL_CALLCONV
 FreeImageIcs_GetFirstIcsHistoryValueWithKey(ICS *ics, char *key, char *value);
 
 
+/*
+Is the Iterator valid
+*/
+DLL_API int DLL_CALLCONV
+IsIcsHistoryIteratorValid (ICS* ics, Ics_HistoryIterator* it);
+
+
 #ifdef __cplusplus
 }
 #endif

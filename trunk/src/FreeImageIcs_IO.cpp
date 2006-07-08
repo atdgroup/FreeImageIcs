@@ -298,8 +298,6 @@ GetIcsDimensionXYImage(ICS *ics, ...)
 		GetTotalDimensionalDataSize(ics, i, &size);
 
 		data_position += (dimensions[i - 2] * size);
-
-		//printf("dimension %d size %d\n", dimensions[i], size);
 	}
 		
 	if(IcsSkipDataBlock  (ics, data_position) != IcsErr_Ok)
@@ -639,103 +637,6 @@ FreeImageIcs_GetNumberOfDimensions (ICS *ics)
 	return ndims;
 }
 
-
-/*
-int
-CopyHistoryStringsToArray(FreeImageIcsPointer fip, char *** history_strings, int *number_of_strings)
-{
-	if (IcsGetNumHistoryStrings (fip->ip, number_of_strings) != IcsErr_Ok)
-		return FREEIMAGE_ALGORITHMS_ERROR;
-
-	if(*number_of_strings <= 0)
-		return FREEIMAGE_ALGORITHMS_ERROR;
-
-	// Save history to array location
-	*history_strings = (char **) malloc(sizeof(char*) * *number_of_strings);
-
-	for(int i=0; i < *number_of_strings; i++) {
-		
-		(*history_strings)[i] = (char *) malloc(sizeof(char) * 40);
-		IcsGetHistoryString (fip->ip, (*history_strings)[i], (i > 0) ? IcsWhich_Next : IcsWhich_First);	
-	}
-		
-	return FREEIMAGE_ALGORITHMS_SUCCESS;
-}
-*/
-
-
-/*
-int 
-ReOpenExistingIcsFileInWriteMode(FreeImageIcsPointer fip, bool maintain_history)
-{
-	Ics_DataType dt;
-	Ics_Error err;
-	size_t bufsize;
-	int ndims;
-	int dims[ICS_MAXDIM];
-	char **history_strings = NULL;
-	int number_of_strings;
-
-	if(FreeImageIcs_IsIcsFileInWriteMode(fip))
-		return FREEIMAGE_ALGORITHMS_SUCCESS;  
-
-	if (IcsClose (fip->ip) != IcsErr_Ok)
-   		return FREEIMAGE_ALGORITHMS_ERROR;
-
-	if(maintain_history) {
-
-		// Open in rw mode
-		if(IcsOpen (&(fip->ip), fip->filepath, "rw") != IcsErr_Ok)
-			return FREEIMAGE_ALGORITHMS_ERROR;
-
-		return FREEIMAGE_ALGORITHMS_SUCCESS;  
-	}
-
-	if(IcsOpen (&(fip->ip), fip->filepath, "r") != IcsErr_Ok)
-		return FREEIMAGE_ALGORITHMS_ERROR;
-
-	if (IcsGetLayout (fip->ip, &dt, &ndims, (size_t *) dims) != IcsErr_Ok)
-   		return FREEIMAGE_ALGORITHMS_ERROR;
-
-	bufsize = IcsGetDataSize (fip->ip);
-
-	if((fip->buf = (BYTE *) malloc (bufsize)) == NULL)
-		return FREEIMAGE_ALGORITHMS_ERROR;
-
-	if ((err = IcsGetData (fip->ip, fip->buf, bufsize)) != IcsErr_Ok)
-   		return FREEIMAGE_ALGORITHMS_ERROR;
-
-	if (IcsClose (fip->ip) != IcsErr_Ok)
-   		return FREEIMAGE_ALGORITHMS_ERROR;
-
-	// Write the file again
-	if(IcsOpen (&(fip->ip), fip->filepath, "w2") != IcsErr_Ok)
-		return FREEIMAGE_ALGORITHMS_ERROR;
-
-	if( IcsSetLayout(fip->ip, dt, ndims, (size_t *) dims) != IcsErr_Ok)
-		return FREEIMAGE_ALGORITHMS_ERROR;
-	
-	if( IcsSetData(fip->ip, fip->buf, bufsize) != IcsErr_Ok)
-		return FREEIMAGE_ALGORITHMS_ERROR;
-
-	if( IcsSetCompression (fip->ip, IcsCompr_gzip, 0) != IcsErr_Ok)
-		return FREEIMAGE_ALGORITHMS_ERROR;
-
-	return FREEIMAGE_ALGORITHMS_SUCCESS;  
-}
-*/
-
-/*
-int DLL_CALLCONV
-FreeImageIcs_IsIcsFileInWriteMode(FreeImageIcsPointer fip)
-{
-	if(strcmp(fip->access_mode, "w") == 0 || strcmp(fip->access_mode, "w2") == 0)
-		return 1;
-
-	return 0;
-}
-*/
-
 static bool file_exists(const char *filepath)
 {
     FILE *file_p;
@@ -747,73 +648,6 @@ static bool file_exists(const char *filepath)
     }
     return false;
 }
-
-
-/*
-int DLL_CALLCONV
-FreeImageIcs_OpenIcsFile(FreeImageIcsPointer *fip, const char *filepath, const char *access_mode)
-{
-	*fip = (FreeImageIcsPointer) malloc(sizeof(FreeImageIcs));
-
-	(*fip)->buf = NULL;
-	(*fip)->number_of_history_strings = 0;
-	(*fip)->iterator = 1;
-
-	strcpy((*fip)->filepath, filepath);
-	strcpy((*fip)->access_mode, access_mode);
-
-	if(strcmp(access_mode, "r") == 0) {
-
-		// Justs looks at the extension
-		if(IcsVersion (filepath, 1) == 0)
-			return FREEIMAGE_ALGORITHMS_ERROR;
-
-		if(IcsOpen (&((*fip)->ip), filepath, "r") != IcsErr_Ok)
-			return FREEIMAGE_ALGORITHMS_ERROR;
-	}
-	else {
-
-		if(file_exists(filepath)) {
-		
-			if(IcsVersion (filepath, 1) == 0)
-				return FREEIMAGE_ALGORITHMS_ERROR;
-
-			if(ReOpenExistingIcsFileInWriteMode(*fip, 1) == FREEIMAGE_ALGORITHMS_ERROR)
-				return FREEIMAGE_ALGORITHMS_ERROR;
-		}
-		else {
-
-			// No such file do a norm open.
-			if(IcsOpen (&((*fip)->ip), filepath, access_mode) != IcsErr_Ok)
-				return FREEIMAGE_ALGORITHMS_ERROR;
-		}
-	}
-
-	return FREEIMAGE_ALGORITHMS_SUCCESS;  
-}
-*/
-
-/*
-int DLL_CALLCONV
-FreeImageIcs_CloseIcsFile(FreeImageIcsPointer fip)
-{
-	Ics_Error err = IcsClose (fip->ip);
-
-	if(fip->buf != NULL) {
-		free(fip->buf);
-		fip->buf = NULL;
-	}
-
-	free(fip);
-    
-	if(err != IcsErr_Ok)
-		return FREEIMAGE_ALGORITHMS_ERROR;		
-
-	return FREEIMAGE_ALGORITHMS_SUCCESS;  
-}
-*/
-
-
 
 int DLL_CALLCONV
 FreeImageIcs_IsIcsFileColourFile(ICS *ics)
