@@ -1,5 +1,5 @@
 #include "FreeImageAlgorithms.h"
-#include "FreeImageIcs_Testing.h"
+#include "FreeImageIcs_Viewer.h"
 #include "FreeImageAlgorithms_IO.h"
 #include "FreeImageAlgorithms_HBitmap.h"
 #include "FreeImageAlgorithms_Palettes.h"
@@ -21,10 +21,6 @@ HWND		hwndMain;
 HDC			hdc;
 HDC			hbitmap_hdc;
 HBITMAP		hbitmap;
-
-DIBSECTION	dib_section;
-
-FIBITMAP	*copy_dib;
 
 TCHAR szFileName[MAX_PATH];
 TCHAR szFileTitle[MAX_PATH];
@@ -59,6 +55,8 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
 	
 			// Get a device context for this window
 			hdc = BeginPaint(hwnd, &ps);
+
+			PaintRect(hwnd, hdc, RGB(255,0,0) );
 
 			SetStretchBltMode(hdc, COLORONCOLOR);
 
@@ -126,10 +124,91 @@ static HWND CreateMainWnd()
 }
 
 
+
+
+static HBITMAP 
+GetDibSection(FIBITMAP *src, HDC hdc, int left, int top, int right, int bottom)
+{
+	if(!src) 
+		return NULL;
+
+	unsigned bpp = FreeImage_GetBPP(src);
+
+	if(bpp <=4)
+		return NULL;
+
+	// normalize the rectangle
+	if(right < left)
+		INPLACESWAP(left, right);
+
+	if(bottom < top)
+		INPLACESWAP(top, bottom);
+
+	// check the size of the sub image
+	int src_width  = FreeImage_GetWidth(src);
+	int src_height = FreeImage_GetHeight(src);
+	int src_pitch = FreeImage_GetPitch(src);
+
+	if((left < 0) || (right > src_width) || (top < 0) || (bottom > src_height))
+		return NULL;
+
+	// allocate the sub image
+	int dst_width = (right - left);
+	int dst_height = (bottom - top);
+
+	BITMAPINFO *info = (BITMAPINFO *) malloc(sizeof(BITMAPINFO) + (FreeImage_GetColorsUsed(src) * sizeof(RGBQUAD)));
+	BITMAPINFOHEADER *bih = (BITMAPINFOHEADER *)info;
+
+	bih->biSize = sizeof(BITMAPINFOHEADER);
+	bih->biWidth = dst_width;
+	bih->biHeight = dst_height;
+	bih->biPlanes = 1;
+	bih->biBitCount = bpp;
+	bih->biCompression = BI_RGB;
+	bih->biSizeImage = 0;
+    bih->biXPelsPerMeter = 0;
+    bih->biYPelsPerMeter = 0;
+   	bih->biClrUsed = 0;           // Always use the whole palette.
+    bih->biClrImportant = 0;
+
+	// copy the palette
+	if(bpp < 16)
+		memcpy(info->bmiColors, FreeImage_GetPalette(src), FreeImage_GetColorsUsed(src) * sizeof(RGBQUAD));
+
+	BYTE *dst_bits;
+
+	HBITMAP hbitmap = CreateDIBSection(hdc, info, DIB_RGB_COLORS, (void **) &dst_bits, NULL, 0);
+
+	free(info);
+
+	if(hbitmap == NULL || dst_bits == NULL)
+		return NULL;
+
+	// get the pointers to the bits and such
+	BYTE *src_bits = FreeImage_GetScanLine(src, src_height - top - dst_height);
+
+	// calculate the number of bytes per pixel
+	unsigned bytespp = FreeImage_GetLine(src) / FreeImage_GetWidth(src);
+	
+	// point to x = left
+	src_bits += (left * bytespp);	
+
+	int dst_line = (dst_width * bpp + 7) / 8;
+	int dst_pitch = (dst_line + 3) & ~3;
+
+	for(int y = 0; y < dst_height; y++)
+		memcpy(dst_bits + (y * dst_pitch), src_bits + (y * src_pitch), dst_line);
+
+	return hbitmap;
+}
+
+
+
 void
 ShowImage(FIBITMAP *src)
 {
 	MSG msg;
+	FIBITMAP *src2;
 
 	// initialize window classes
 	InitMainWnd();
@@ -137,9 +216,17 @@ ShowImage(FIBITMAP *src)
 	hwndMain = CreateMainWnd();
 	hdc = GetDC(hwndMain);
 
-	hbitmap = FreeImageAlgorithms_GetDibSection(src, hdc, 0, 0,
-						FreeImage_GetWidth(src), FreeImage_GetHeight(src));
-		
+	assert(hdc != NULL);
+
+	src2 = FreeImage_ConvertToStandardType(src);
+
+	int width = FreeImage_GetWidth(src2);
+	int height = FreeImage_GetHeight(src2);
+
+	hbitmap = GetDibSection(src2, hdc, 0, 0, width, height);
+	
+	assert(hbitmap != NULL);
+
 	hbitmap_hdc = CreateCompatibleDC(hdc);
 
 	// Associate the new DC with the bitmap for drawing 

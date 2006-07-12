@@ -29,9 +29,6 @@ FreeImageIcs_OpenIcsFile(ICS *ics, const char *filepath, const char *access_mode
 DLL_API int DLL_CALLCONV
 FreeImageIcs_CloseIcsFile(ICS *ics);
 
-DLL_API int DLL_CALLCONV
-IsIcsFilePaddded (char *filepath);
-
 DLL_API FIBITMAP* DLL_CALLCONV
 FreeImageIcs_LoadFIBFromIcsFile (ICS *ics, int padded);
 
@@ -39,16 +36,19 @@ DLL_API FIBITMAP* DLL_CALLCONV
 FreeImageIcs_LoadFIBFromIcsFilePath (const char* filepath, int padded);
 
 DLL_API int DLL_CALLCONV
-FreeImageIcs_SaveFIBToIcsFile (FIBITMAP *dib, const char *pathname);
+FreeImageIcs_GetNumberOfDimensions (ICS *ics);
 
 DLL_API FIBITMAP* DLL_CALLCONV
-GetIcsDimensionXYImage(ICS *ics, ...);
-
-DLL_API FIBITMAP* DLL_CALLCONV
-GetIcsXYImageForDimensionSlice(ICS *ics, int dimension, int slice);
+FreeImageIcs_GetIcsImageDataSlice(ICS *ics, int dimension, int slice);
 
 DLL_API int DLL_CALLCONV
-FreeImageIcs_GetNumberOfDimensions (ICS *ics);
+FreeImageIcs_SaveGreyScaleImage (FIBITMAP *dib, const char *filepath);
+
+DLL_API int DLL_CALLCONV
+FreeImageIcs_SaveColourImage (FIBITMAP *dib, const char *filepath);
+
+DLL_API int DLL_CALLCONV
+FreeImageIcs_SaveFIBToIcsFile (FIBITMAP *dib, const char *filepath);
 
 #ifdef __cplusplus
 }

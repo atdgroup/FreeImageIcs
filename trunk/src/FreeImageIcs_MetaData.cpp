@@ -1,4 +1,5 @@
 #include "FreeImageIcs_MetaData.h"
+#include "FreeImageIcs_Private.h"
 #include "FreeImageIcs_IO.h"
 
 #include <iostream>
@@ -16,6 +17,33 @@ str_strlwr(char *s)
    
    return s;
 }
+
+
+int DLL_CALLCONV
+FreeImageIcs_GetLabelForDimension (ICS *ics, int dimension, char *label)
+{
+	char labels[ICS_LINE_LENGTH];
+
+	FreeImageIcs_GetFirstIcsHistoryValueWithKey(ics, "labels", labels);
+
+	char *result = strtok(labels, " ");
+
+	if(dimension <= 0)
+		strcpy(label, result);
+
+	for(int i = 1; i <= dimension; i++) {
+		if((result = strtok(NULL, " ")) == NULL)
+			return FREEIMAGE_ALGORITHMS_ERROR;
+	}
+
+	if(result != NULL)
+		strcpy(label, result);
+	else
+		return FREEIMAGE_ALGORITHMS_ERROR;
+
+	return FREEIMAGE_ALGORITHMS_SUCCESS;
+}
+
 
 int DLL_CALLCONV
 FreeImageIcs_GetIcsHistoryStringCount(ICS *ics)

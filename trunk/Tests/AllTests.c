@@ -22,7 +22,7 @@ void RunAllTests(void)
 	printf("%s\n", output->buffer);
 }
 
-int __cdecl main(void)
+int main()
 {
 	char string[10];
 
