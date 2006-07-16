@@ -48,7 +48,7 @@ DLL_API int DLL_CALLCONV
 FreeImageIcs_SaveColourImage (FIBITMAP *dib, const char *filepath);
 
 DLL_API int DLL_CALLCONV
-FreeImageIcs_SaveFIBToIcsFile (FIBITMAP *dib, const char *filepath);
+FreeImageIcs_SaveImage (FIBITMAP *dib, const char *filepath);
 
 #ifdef __cplusplus
 }

@@ -318,12 +318,11 @@ FreeImageIcs_SaveGreyScaleImage (FIBITMAP *dib, const char *filepath)
 {
 	ICS* ics;
 	Ics_Error err;
-	Ics_DataType dt = Ics_uint8;
-	FIBITMAP *standard_dib;
 	int ndims;
 	int dims[2];
 	int bufsize;
-	
+	int bytes_per_pixel;
+
 	if(dib == NULL)
 		return FREEIMAGE_ALGORITHMS_ERROR;
 
@@ -332,38 +331,39 @@ FreeImageIcs_SaveGreyScaleImage (FIBITMAP *dib, const char *filepath)
 	if (err != IcsErr_Ok)
    		return FREEIMAGE_ALGORITHMS_ERROR;
 
-	standard_dib = FreeImage_Clone(dib);
+	bytes_per_pixel = FreeImage_GetBPP(dib) / 8;
 
 	ndims = 2;	
-	dims[0] = FreeImage_GetWidth(standard_dib); 
-    dims[1] = FreeImage_GetHeight(standard_dib);
+	dims[0] = FreeImage_GetWidth(dib); 
+    dims[1] = FreeImage_GetHeight(dib);
   
-	bufsize = dims[0] * dims[1];
+	Ics_DataType dt = FreeImageTypeToIcsType (FreeImage_GetImageType(dib));
+
+	bufsize = dims[0] * dims[1] * bytes_per_pixel;
 
 	IcsSetOrder  (ics, 0, "x", "x-position");
 	IcsSetOrder  (ics, 1, "y", "y-position");
 	IcsAddHistory  (ics, "labels", "x y");
 
-	FreeImage_FlipVertical(standard_dib);
+	FreeImage_FlipVertical(dib);
 
 	if( IcsSetLayout(ics, dt, ndims, (size_t *) dims) != IcsErr_Ok)
-		return FREEIMAGE_ALGORITHMS_ERROR;
+		goto Error;
 
-	if( (err = IcsSetData(ics, FreeImage_GetBits(standard_dib), bufsize)) != IcsErr_Ok)
-		return FREEIMAGE_ALGORITHMS_ERROR;
+	if( (err = IcsSetData(ics, FreeImage_GetBits(dib), bufsize)) != IcsErr_Ok)
+		goto Error;
 		
 	if( IcsSetCompression (ics, IcsCompr_gzip, 0) != IcsErr_Ok)
-		return FREEIMAGE_ALGORITHMS_ERROR;
+		goto Error;
 	
-	if( IcsClose (ics) != IcsErr_Ok) {
-		
-		FreeImage_Unload(dib);
-		return FREEIMAGE_ALGORITHMS_ERROR;
-	}
-
-	FreeImage_Unload(standard_dib);
+	if( IcsClose (ics) != IcsErr_Ok)
+		goto Error;
 
 	return FREEIMAGE_ALGORITHMS_SUCCESS;
+
+	Error:
+
+	return FREEIMAGE_ALGORITHMS_ERROR;
 }
 
 
