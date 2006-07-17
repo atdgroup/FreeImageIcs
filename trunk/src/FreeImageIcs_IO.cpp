@@ -293,25 +293,27 @@ GetColourImageDataInIcsFormat(FIBITMAP *dib, void *data)
 }
 
 
-
+// This function get the bits bottom row first.
+// It also ignores padding bytes as these are not stored
+// in ics files.
 static void
 FreeImage_GetBitsVerticalFlip(FIBITMAP *dib, BYTE *bytes)
 {
 	register int y;
 	BYTE *scanline_bytes;
 	int height = FreeImage_GetHeight(dib);
-	int pitch = FreeImage_GetPitch(dib); 
+	int pitch = FreeImage_GetPitch(dib);
+	int line = FreeImage_GetLine(dib); 
 	
 	for( y = 0; y < height; y++) {
 
 		scanline_bytes = (BYTE *) FreeImage_GetScanLine(dib, height - y - 1);
 
-		memcpy( bytes, scanline_bytes, pitch ); 
+		memcpy( bytes, scanline_bytes, line ); 
 				
-		bytes += pitch;
+		bytes += line;
 	}
 }
-
 
 int DLL_CALLCONV
 FreeImageIcs_SaveGreyScaleImage (FIBITMAP *dib, const char *filepath)
@@ -345,12 +347,14 @@ FreeImageIcs_SaveGreyScaleImage (FIBITMAP *dib, const char *filepath)
 	IcsSetOrder  (ics, 1, "y", "y-position");
 	IcsAddHistory  (ics, "labels", "x y");
 
-	FreeImage_FlipVertical(dib);
+	BYTE *bits = (BYTE*) malloc(bufsize);
+
+	FreeImage_GetBitsVerticalFlip(dib, bits);
 
 	if( IcsSetLayout(ics, dt, ndims, (size_t *) dims) != IcsErr_Ok)
 		goto Error;
 
-	if( (err = IcsSetData(ics, FreeImage_GetBits(dib), bufsize)) != IcsErr_Ok)
+	if( (err = IcsSetData(ics, bits, bufsize)) != IcsErr_Ok)
 		goto Error;
 		
 	if( IcsSetCompression (ics, IcsCompr_gzip, 0) != IcsErr_Ok)
@@ -359,9 +363,14 @@ FreeImageIcs_SaveGreyScaleImage (FIBITMAP *dib, const char *filepath)
 	if( IcsClose (ics) != IcsErr_Ok)
 		goto Error;
 
+	free(bits);
+
 	return FREEIMAGE_ALGORITHMS_SUCCESS;
 
 	Error:
+
+	if(bits)
+		free(bits);
 
 	return FREEIMAGE_ALGORITHMS_ERROR;
 }

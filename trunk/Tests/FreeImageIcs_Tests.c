@@ -43,9 +43,12 @@ TestFreeImageIcs_ReadMultiDimensionalGreyScale(CuTest* tc)
 	char value[200];
 	FIBITMAP* fib, *fib2;
 	int dims[2] = {500,500};
+	int line, pitch, width;
+	int test;
 
-	char *file = "C:\\Documents and Settings\\Glenn\\Desktop\\test16bit.ics";
-	char *save_file = "C:\\Documents and Settings\\Glenn\\Desktop\\newtesty.ics";
+	//char *file = "C:\\Documents and Settings\\Pierce\\Desktop\\rjl.ics";
+	char *file = "C:\\Documents and Settings\\Pierce\\Desktop\\shit.ics";
+	char *save_file = "C:\\Documents and Settings\\Pierce\\Desktop\\problem2.ics";
 
 	err = IcsOpen (&ics, file, "r");
 
@@ -53,9 +56,17 @@ TestFreeImageIcs_ReadMultiDimensionalGreyScale(CuTest* tc)
 
 	assert(fib != NULL);
 
-	ShowImage(fib);
+	// Resample
+	fib2 = FreeImage_Rescale(fib, 200, 200, FILTER_BOX);
 
-	FreeImageIcs_SaveImage(fib, save_file);
+
+	width = FreeImage_GetWidth(fib2);
+	line = FreeImage_GetLine(fib2);
+	pitch = FreeImage_GetPitch(fib2);
+
+	//ShowImage(fib2);
+
+	FreeImageIcs_SaveImage(fib2, save_file);
 	
 	FreeImage_Unload(fib);
 
