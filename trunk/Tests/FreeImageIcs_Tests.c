@@ -10,6 +10,8 @@
 
 #include <assert.h>
 
+#define TEST_IMAGE_DIR "C:\\Documents and Settings\\Pierce\\Desktop\\development\\Working Area\\Test Images\\"
+
 static void
 TestFreeImageIcs_MetaDataAdd(CuTest* tc)
 {
@@ -41,38 +43,97 @@ TestFreeImageIcs_ReadMultiDimensionalGreyScale(CuTest* tc)
 	Ics_Error err;
 	int fiError;
 	char value[200];
-	FIBITMAP* fib, *fib2;
-	int dims[2] = {500,500};
-	int line, pitch, width;
-	int test;
+	FIBITMAP* fib;
 
-	//char *file = "C:\\Documents and Settings\\Pierce\\Desktop\\rjl.ics";
-	char *file = "C:\\Documents and Settings\\Pierce\\Desktop\\shit.ics";
-	char *save_file = "C:\\Documents and Settings\\Pierce\\Desktop\\problem2.ics";
+	char *file = TEST_IMAGE_DIR "multidimensional.ics";
 
 	err = IcsOpen (&ics, file, "r");
 
-	fib = FreeImageIcs_LoadFIBFromIcsFile (ics, 0);
+	fib = FreeImageIcs_LoadFIBFromIcsFile (ics);
 
 	assert(fib != NULL);
 
-	// Resample
-	fib2 = FreeImage_Rescale(fib, 200, 200, FILTER_BOX);
+	ShowImage(fib);
 
-
-	width = FreeImage_GetWidth(fib2);
-	line = FreeImage_GetLine(fib2);
-	pitch = FreeImage_GetPitch(fib2);
-
-	//ShowImage(fib2);
-
-	FreeImageIcs_SaveImage(fib2, save_file);
-	
 	FreeImage_Unload(fib);
 
 	IcsClose(ics);
 }
 
+
+static void
+TestFreeImageIcs_ReadMultiDimensionalGreyScaleSlice(CuTest* tc)
+{
+	ICS *ics, *save_ics;
+	Ics_Error err;
+	int fiError;
+	char value[200];
+	FIBITMAP* fib;
+
+	char *file = TEST_IMAGE_DIR "multidimensional2.ics";
+
+	err = IcsOpen (&ics, file, "r");
+
+	fib = FreeImageIcs_GetIcsImageDataSlice(ics, 2, 15);
+
+	assert(fib != NULL);
+
+	ShowImage(fib);
+
+	FreeImage_Unload(fib);
+
+	IcsClose(ics);
+}
+
+
+static void
+TestFreeImageIcs_ReadMultiDimensionalColour(CuTest* tc)
+{
+	ICS *ics, *save_ics;
+	Ics_Error err;
+	int fiError;
+	char value[200];
+	FIBITMAP* fib;
+
+	char *file = TEST_IMAGE_DIR "colour_test.ics";
+
+	err = IcsOpen (&ics, file, "r");
+
+	fib = FreeImageIcs_LoadFIBFromIcsFile (ics);
+
+	assert(fib != NULL);
+
+	ShowImage(fib);
+
+	FreeImage_Unload(fib);
+
+	IcsClose(ics);
+}
+
+
+static void
+TestFreeImageIcs_Read12BitIcs(CuTest* tc)
+{
+	ICS *ics, *save_ics;
+	Ics_Error err;
+	int fiError;
+	char value[200];
+	FIBITMAP* fib;
+
+	char *file = TEST_IMAGE_DIR "12bittest.ics";
+
+	err = IcsOpen (&ics, file, "r");
+
+	fib = FreeImageIcs_LoadFIBFromIcsFile (ics);
+
+	assert(fib != NULL);
+
+	ShowImage(fib);
+
+	FreeImage_Unload(fib);
+
+	IcsClose(ics);
+}
 
 CuSuite*
 CuGetFreeImageIcsTestSuite(void)
@@ -81,6 +142,9 @@ CuGetFreeImageIcsTestSuite(void)
 
 	SUITE_ADD_TEST(suite, TestFreeImageIcs_MetaDataAdd);
 	SUITE_ADD_TEST(suite, TestFreeImageIcs_ReadMultiDimensionalGreyScale);
+	SUITE_ADD_TEST(suite, TestFreeImageIcs_ReadMultiDimensionalGreyScaleSlice);
+	SUITE_ADD_TEST(suite, TestFreeImageIcs_ReadMultiDimensionalColour);
+	SUITE_ADD_TEST(suite, TestFreeImageIcs_Read12BitIcs);
 
 	return suite;
 }

@@ -17,7 +17,8 @@
 // GetTotalDimensionalDataSize(ics, 2, &size)
 // size would return the size of the all the t dimensions below each z dimension.
 
-static Ics_Error GetTotalDimensionalDataSize(ICS *ics, int dimension, size_t *size)
+static Ics_Error DLL_CALLCONV
+GetTotalDimensionalDataSize(ICS *ics, int dimension, size_t *size)
 {
 	Ics_DataType dataType;
 	int ndims;
@@ -40,7 +41,8 @@ static Ics_Error GetTotalDimensionalDataSize(ICS *ics, int dimension, size_t *si
 }
 
 
-static void CopyBytesToFIBitmap(FIBITMAP *src, BYTE *data, int padded)
+static void DLL_CALLCONV
+CopyBytesToFIBitmap(FIBITMAP *src, BYTE *data, int padded)
 {
 	register int y;
 
@@ -65,7 +67,7 @@ static void CopyBytesToFIBitmap(FIBITMAP *src, BYTE *data, int padded)
 }
 
 
-static FIBITMAP*
+static FIBITMAP* DLL_CALLCONV
 FreeImageIcs_CreateFIB(BYTE *data, Ics_DataType icsType, int bpp, int width, int height, int colour, int padded)
 {
 	FIBITMAP 	*dib;
@@ -100,23 +102,25 @@ FreeImageIcs_GetIcsImageDataSlice(ICS *ics, int dimension, int slice)
 	int ndims;
 	size_t dims[ICS_MAXDIM];
 
+	memset(dims, 0, sizeof(size_t) * ICS_MAXDIM);
+
 	// Reset the poiter to the beginning of file.
 	if(ics->BlockRead)
 		IcsSetIdsBlock (ics, 0, SEEK_SET);
 
 	IcsGetLayout (ics, &dataType, &ndims, dims);
 
-	// Dimension must be less than the total dimensions
-	if(dimension >= ndims)
+	// Dimension must not be greater than the total dimensions
+	if(dimension > ndims)
 		return NULL;
 
 	// If the slice is greater than the size for that dimension return error;
-	if(slice >= (int) dims[dimension])
+	if(slice != 0 && slice >= (int) dims[dimension])
 		return NULL;
 
 	size_t bufsize;
 
-	GetTotalDimensionalDataSize(ics, dimension, &bufsize);
+	GetTotalDimensionalDataSize(ics, dimension - 1, &bufsize);
 		
 	if(IcsSkipDataBlock  (ics, bufsize * slice) != IcsErr_Ok)
 		return NULL;
@@ -139,14 +143,14 @@ FreeImageIcs_GetIcsImageDataSlice(ICS *ics, int dimension, int slice)
 }
 
 
-static FIBITMAP*
+static FIBITMAP* DLL_CALLCONV
 LoadFIBFromColourIcsFile (ICS *ics, int width, int height)
 {
 	FIBITMAP *dib = FreeImage_AllocateT(FIT_BITMAP, width, height, 24, 0, 0, 0);
 	 
-	FIBITMAP *red_fib = FreeImageIcs_GetIcsImageDataSlice(ics, 1, 0);
-	FIBITMAP *green_fib = FreeImageIcs_GetIcsImageDataSlice(ics, 1, 1);
-	FIBITMAP *blue_fib = FreeImageIcs_GetIcsImageDataSlice(ics, 1, 2);
+	FIBITMAP *red_fib = FreeImageIcs_GetIcsImageDataSlice(ics, 2, 0);
+	FIBITMAP *green_fib = FreeImageIcs_GetIcsImageDataSlice(ics, 2, 1);
+	FIBITMAP *blue_fib = FreeImageIcs_GetIcsImageDataSlice(ics, 2, 2);
 
 	FreeImage_SetChannel(dib, red_fib, FICC_RED);
 	FreeImage_SetChannel(dib, green_fib, FICC_GREEN);
@@ -233,7 +237,7 @@ FreeImageIcs_GetDimensionDetails (ICS *ics, int dimension, char* order, char *la
 
 
 FIBITMAP* DLL_CALLCONV
-FreeImageIcs_LoadFIBFromIcsFile (ICS *ics, int padded)
+FreeImageIcs_LoadFIBFromIcsFile (ICS *ics)
 {
 	FIBITMAP *dib;
 	Ics_DataType dt;
@@ -245,20 +249,20 @@ FreeImageIcs_LoadFIBFromIcsFile (ICS *ics, int padded)
 	if(FreeImageIcs_IsIcsFileColourFile(ics))
 		dib = LoadFIBFromColourIcsFile (ics, dims[0], dims[1]);
 	else
-		dib = FreeImageIcs_GetIcsImageDataSlice(ics, 1, 0);
+		dib = FreeImageIcs_GetIcsImageDataSlice(ics, 2, 0);
 	
 	return dib;
 }
 
 
 FIBITMAP* DLL_CALLCONV
-FreeImageIcs_LoadFIBFromIcsFilePath (const char* filepath, int padded)
+FreeImageIcs_LoadFIBFromIcsFilePath (const char* filepath)
 {
 	ICS *ics;
 
 	IcsOpen(&ics, filepath, "rw");
 
-	FIBITMAP *fib = FreeImageIcs_LoadFIBFromIcsFile (ics, padded);
+	FIBITMAP *fib = FreeImageIcs_LoadFIBFromIcsFile (ics);
 
 	IcsClose(ics);
 

@@ -30,10 +30,10 @@ DLL_API int DLL_CALLCONV
 FreeImageIcs_CloseIcsFile(ICS *ics);
 
 DLL_API FIBITMAP* DLL_CALLCONV
-FreeImageIcs_LoadFIBFromIcsFile (ICS *ics, int padded);
+FreeImageIcs_LoadFIBFromIcsFile (ICS *ics);
 
 DLL_API FIBITMAP* DLL_CALLCONV
-FreeImageIcs_LoadFIBFromIcsFilePath (const char* filepath, int padded);
+FreeImageIcs_LoadFIBFromIcsFilePath (const char* filepath);
 
 DLL_API int DLL_CALLCONV
 FreeImageIcs_GetNumberOfDimensions (ICS *ics);
