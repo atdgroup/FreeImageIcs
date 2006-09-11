@@ -20,13 +20,19 @@ TestFreeImageIcs_MetaDataAdd(CuTest* tc)
 	int fiError;
 	char value[200];
 
-	char *file = "C:\\Documents and Settings\\Pierce\\Desktop\\rjl.ics";
+	char text[1000];
+
+	char *file = "C:\\Documents and Settings\\Pierce\\Desktop\\te.ics";
+
+	memset(text, 0, 1000);
+	FreeImageIcs_GetHistoryTextFromFile(file, text);
+
 
 	err = IcsOpen (&ics, file, "rw");
 
 	CuAssertTrue(tc, err == IcsErr_Ok);
 
-	fiError = FreeImageIcs_AddIcsHistoryKeyValueStrings(ics, "Glenn Key", "Glenn Value", NULL);
+//	fiError = FreeImageIcs_AddIcsHistoryKeyValueStrings(ics, "Glenn Key", "Glenn Value", NULL);
 
 	FreeImageIcs_GetFirstIcsHistoryValueWithKey(ics, "Glenn Key", value);
 

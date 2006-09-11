@@ -203,3 +203,61 @@ IsIcsHistoryIteratorValid (ICS* ics, Ics_HistoryIterator* it)
 {
 	return it->next;
 }
+
+int DLL_CALLCONV
+FreeImageIcs_GetHistoryText(ICS *ics, char *text)
+{
+	Ics_HistoryIterator it;     
+	char buffer[ICS_LINE_LENGTH], key[ICS_LINE_LENGTH], value[ICS_LINE_LENGTH];
+
+	memset(text, 0, 1);
+
+	if(FreeImageIcs_GetIcsHistoryStringCount(ics) <= 0)
+		return FREEIMAGE_ALGORITHMS_ERROR;	
+
+	if(IcsNewHistoryIterator (ics, &it, NULL) != IcsErr_Ok)
+		return FREEIMAGE_ALGORITHMS_ERROR;	
+
+	while (it.next >= 0) { 
+	   
+		memset(buffer, 0, 100);
+	    memset(key, 0, 1);
+		memset(value, 0, 100);
+
+    	if(IcsGetHistoryKeyValueI (ics, &it, key, value) != IcsErr_Ok)	   // get next string, update iterator 
+			continue;    
+	 
+		if(strcmp(key, "") == 0)
+			sprintf(buffer, "%s\n", value);
+		else
+			sprintf(buffer, "%s: %s\n", key, value);
+			
+		strcat(text, buffer);
+	}	
+
+	strcat(text, "\0");
+
+	return FREEIMAGE_ALGORITHMS_SUCCESS;
+}
+
+
+int DLL_CALLCONV
+FreeImageIcs_GetHistoryTextFromFile(const char *filepath, char *text)
+{
+	ICS *ics;
+	int ret;
+
+	// Reset text
+	memset(text, 0, 1);
+
+	if(!FreeImageIcs_IsIcsFile (filepath))
+		return FREEIMAGE_ALGORITHMS_ERROR;	
+
+	IcsOpen(&ics, filepath, "r");
+
+	ret = FreeImageIcs_GetHistoryText(ics, text);
+
+	IcsClose(ics);
+
+	return ret;
+}
