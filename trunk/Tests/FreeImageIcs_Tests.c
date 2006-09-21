@@ -141,16 +141,51 @@ TestFreeImageIcs_Read12BitIcs(CuTest* tc)
 	IcsClose(ics);
 }
 
+
+static void
+TestFreeImageIcs_ResizeTest(CuTest* tc)
+{
+	double min, max;
+
+	FIBITMAP *dib1, *dib2, *dib3;
+	ICS *ics;
+
+	char *file = "C:\\Documents and Settings\\Pierce\\Desktop\\test\\what.ics";
+	//char *file = "C:\\Documents and Settings\\Pierce\\Desktop\\test\\rjl.ics";
+
+	IcsOpen(&ics, file, "r");
+
+	dib1 = FreeImageIcs_LoadFIBFromIcsFile(ics);
+
+	dib3 = FreeImage_ConvertToStandardType(dib1, 1);
+
+	dib2 = FreeImage_Rescale(dib3, 64, 64, FILTER_BOX);  
+
+	
+	CuAssertTrue(tc, dib1 != NULL);
+	CuAssertTrue(tc, dib2 != NULL);
+
+	FreeImageAlgorithms_SaveFIBToFile (dib1, "C:\\temp\\1.bmp", BIT24);
+	FreeImageAlgorithms_SaveFIBToFile (dib2, "C:\\temp\\2.bmp", BIT24);
+
+	FreeImage_Unload(dib1);
+	FreeImage_Unload(dib2);
+
+	IcsClose(ics);
+}
+
+
 CuSuite*
 CuGetFreeImageIcsTestSuite(void)
 {
 	CuSuite* suite = CuSuiteNew();
 
-	SUITE_ADD_TEST(suite, TestFreeImageIcs_MetaDataAdd);
-	SUITE_ADD_TEST(suite, TestFreeImageIcs_ReadMultiDimensionalGreyScale);
-	SUITE_ADD_TEST(suite, TestFreeImageIcs_ReadMultiDimensionalGreyScaleSlice);
-	SUITE_ADD_TEST(suite, TestFreeImageIcs_ReadMultiDimensionalColour);
-	SUITE_ADD_TEST(suite, TestFreeImageIcs_Read12BitIcs);
+	//SUITE_ADD_TEST(suite, TestFreeImageIcs_MetaDataAdd);
+	//SUITE_ADD_TEST(suite, TestFreeImageIcs_ReadMultiDimensionalGreyScale);
+	//SUITE_ADD_TEST(suite, TestFreeImageIcs_ReadMultiDimensionalGreyScaleSlice);
+	//SUITE_ADD_TEST(suite, TestFreeImageIcs_ReadMultiDimensionalColour);
+	//SUITE_ADD_TEST(suite, TestFreeImageIcs_Read12BitIcs);
+	SUITE_ADD_TEST(suite, TestFreeImageIcs_ResizeTest);
 
 	return suite;
 }
