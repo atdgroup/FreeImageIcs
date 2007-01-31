@@ -17,7 +17,6 @@ TestFreeImageIcs_MetaDataAdd(CuTest* tc)
 {
 	ICS *ics;
 	Ics_Error err;
-	int fiError;
 	char value[200];
 
 	char text[1000];
@@ -45,10 +44,8 @@ TestFreeImageIcs_MetaDataAdd(CuTest* tc)
 static void
 TestFreeImageIcs_ReadMultiDimensionalGreyScale(CuTest* tc)
 {
-	ICS *ics, *save_ics;
+	ICS *ics;
 	Ics_Error err;
-	int fiError;
-	char value[200];
 	FIBITMAP* fib;
 
 	char *file = TEST_IMAGE_DIR "multidimensional.ics";
@@ -70,10 +67,9 @@ TestFreeImageIcs_ReadMultiDimensionalGreyScale(CuTest* tc)
 static void
 TestFreeImageIcs_ReadMultiDimensionalGreyScaleSlice(CuTest* tc)
 {
-	ICS *ics, *save_ics;
+	ICS *ics;
 	Ics_Error err;
 	int fiError;
-	char value[200];
 	FIBITMAP* fib;
 
 	char *file = TEST_IMAGE_DIR "multidimensional2.ics";
@@ -95,10 +91,8 @@ TestFreeImageIcs_ReadMultiDimensionalGreyScaleSlice(CuTest* tc)
 static void
 TestFreeImageIcs_ReadMultiDimensionalColour(CuTest* tc)
 {
-	ICS *ics, *save_ics;
+	ICS *ics;
 	Ics_Error err;
-	int fiError;
-	char value[200];
 	FIBITMAP* fib;
 
 	char *file = TEST_IMAGE_DIR "colour_test.ics";
@@ -120,10 +114,8 @@ TestFreeImageIcs_ReadMultiDimensionalColour(CuTest* tc)
 static void
 TestFreeImageIcs_Read12BitIcs(CuTest* tc)
 {
-	ICS *ics, *save_ics;
+	ICS *ics;
 	Ics_Error err;
-	int fiError;
-	char value[200];
 	FIBITMAP* fib;
 
 	char *file = TEST_IMAGE_DIR "12bittest.ics";
@@ -145,8 +137,6 @@ TestFreeImageIcs_Read12BitIcs(CuTest* tc)
 static void
 TestFreeImageIcs_ResizeTest(CuTest* tc)
 {
-	double min, max;
-
 	FIBITMAP *dib1, *dib2, *dib3;
 	ICS *ics;
 
