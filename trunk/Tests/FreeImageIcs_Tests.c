@@ -138,12 +138,16 @@ static void
 TestFreeImageIcs_ResizeTest(CuTest* tc)
 {
 	FIBITMAP *dib1, *dib2, *dib3;
+	Ics_Error err;
 	ICS *ics;
 
 	char *file = "C:\\Documents and Settings\\Pierce\\Desktop\\test\\what.ics";
 	//char *file = "C:\\Documents and Settings\\Pierce\\Desktop\\test\\rjl.ics";
 
-	IcsOpen(&ics, file, "r");
+	err = IcsOpen(&ics, file, "r");
+
+	if(err != IcsErr_Ok)
+		return;
 
 	dib1 = FreeImageIcs_LoadFIBFromIcsFile(ics);
 
