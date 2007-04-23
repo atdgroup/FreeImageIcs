@@ -455,62 +455,32 @@ FreeImageIcs_SaveImage (FIBITMAP *dib, const char *filepath)
 }
 
 
-
-/*
-// Save an array of fibitmaps as a multidimensal ics.
-int DLL_CALLCONV
-FreeImageIcs_SaveGreyScaleImages (FIBITMAP **dib, int size,
-	const char *third_dimension_name, const char *third_dimension_description, const char *filepath)
+Ics_Error DLL_CALLCONV
+FreeImageIcs_IcsOpen (ICS* *ics, char const* filename, char const* mode)
 {
-	ICS* ics;
-	Ics_Error err;
-	Ics_DataType dt = Ics_uint8;
-	FIBITMAP *standard_dib;
-	int ndims;
-	int dims[2];
-	int bufsize;
-	
-	if(dib == NULL)
-		return FREEIMAGE_ALGORITHMS_ERROR;
-
-	err = IcsOpen (&ics, filepath, "w2");
-
-	if (err != IcsErr_Ok)
-   		return FREEIMAGE_ALGORITHMS_ERROR;
-
-	standard_dib = FreeImage_Clone(dib);
-
-	ndims = 3;	
-	dims[0] = FreeImage_GetWidth(standard_dib); 
-    dims[1] = FreeImage_GetHeight(standard_dib);
-	dims[2] = size;
-
-	bufsize = dims[0] * dims[1] * dims[2];
-
-	IcsSetOrder  (ics, 0, "x", "x-position");
-	IcsSetOrder  (ics, 1, "y", "y-position");
-	IcsSetOrder  (ics, 1, third_dimension_name, third_dimension_description);
-	IcsAddHistory  (ics, "labels", "x y");
-
-	FreeImage_FlipVertical(standard_dib);
-
-	if( IcsSetLayout(ics, dt, ndims, (size_t *) dims) != IcsErr_Ok)
-		return FREEIMAGE_ALGORITHMS_ERROR;
-
-	if( (err = IcsSetData(ics, FreeImage_GetBits(standard_dib), bufsize)) != IcsErr_Ok)
-		return FREEIMAGE_ALGORITHMS_ERROR;
-		
-	if( IcsSetCompression (ics, IcsCompr_gzip, 0) != IcsErr_Ok)
-		return FREEIMAGE_ALGORITHMS_ERROR;
-	
-	if( IcsClose (ics) != IcsErr_Ok) {
-		
-		FreeImage_Unload(dib);
-		return FREEIMAGE_ALGORITHMS_ERROR;
-	}
-
-	FreeImage_Unload(standard_dib);
-
-	return FREEIMAGE_ALGORITHMS_SUCCESS;
+    return IcsOpen (ics, filename, mode);
 }
-*/
+
+Ics_Error DLL_CALLCONV
+FreeImageIcs_IcsClose (ICS* ics)
+{
+    return IcsClose (ics);
+}
+
+Ics_Error DLL_CALLCONV
+FreeImageIcs_IcsAddHistoryString (ICS* ics, char const* key, char const* value)
+{
+    return IcsAddHistoryString (ics, key, value);
+}
+
+Ics_Error DLL_CALLCONV
+FreeImageIcs_IcsNewHistoryIterator (ICS* ics, Ics_HistoryIterator* it, char const* key)
+{
+    return IcsNewHistoryIterator (ics, it, key);
+}
+
+Ics_Error DLL_CALLCONV
+FreeImageIcs_IcsGetHistoryStringI (ICS* ics, Ics_HistoryIterator* it, char* string)
+{
+    return IcsGetHistoryStringI (ics, it, string);
+}

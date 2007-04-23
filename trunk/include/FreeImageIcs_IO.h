@@ -50,6 +50,22 @@ FreeImageIcs_SaveColourImage (FIBITMAP *dib, const char *filepath);
 DLL_API int DLL_CALLCONV
 FreeImageIcs_SaveImage (FIBITMAP *dib, const char *filepath);
 
+// Abstracts Ics files which have to be the __cdcel calling convention
+DLL_API Ics_Error DLL_CALLCONV
+FreeImageIcs_IcsOpen (ICS* *ics, char const* filename, char const* mode);
+
+DLL_API Ics_Error DLL_CALLCONV
+FreeImageIcs_IcsClose (ICS* ics);
+
+DLL_API Ics_Error DLL_CALLCONV
+FreeImageIcs_IcsAddHistoryString (ICS* ics, char const* key, char const* value);
+
+DLL_API Ics_Error DLL_CALLCONV
+FreeImageIcs_IcsNewHistoryIterator (ICS* ics, Ics_HistoryIterator* it, char const* key);
+
+DLL_API Ics_Error DLL_CALLCONV
+FreeImageIcs_IcsGetHistoryStringI (ICS* ics, Ics_HistoryIterator* it, char* string);
+
 #ifdef __cplusplus
 }
 #endif
