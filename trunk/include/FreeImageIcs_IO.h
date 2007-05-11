@@ -33,12 +33,6 @@ DLL_API FIBITMAP* DLL_CALLCONV
 FreeImageIcs_GetIcsImageXYDataSlice(ICS *ics, int dimension, int slice);
 
 DLL_API int DLL_CALLCONV
-FreeImageIcs_SaveGreyScaleImage (FIBITMAP *dib, const char *filepath);
-
-DLL_API int DLL_CALLCONV
-FreeImageIcs_SaveColourImage (FIBITMAP *dib, const char *filepath);
-
-DLL_API int DLL_CALLCONV
 FreeImageIcs_SaveImage (FIBITMAP *dib, const char *filepath);
 
 // Abstracts Ics files which have to be the __cdcel calling convention

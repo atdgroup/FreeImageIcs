@@ -1,7 +1,4 @@
 #include "CuTest.h"
-
-#include "libics.h"
-
 #include "FreeImageAlgorithms_IO.h"
 
 #include "FreeImageIcs_IO.h"
@@ -27,7 +24,7 @@ TestFreeImageIcs_MetaDataAdd(CuTest* tc)
 	FreeImageIcs_GetHistoryTextFromFile(file, text);
 
 
-	err = IcsOpen (&ics, file, "rw");
+	err = FreeImageIcs_IcsOpen (&ics, file, "rw");
 
 	CuAssertTrue(tc, err == IcsErr_Ok);
 
@@ -37,7 +34,7 @@ TestFreeImageIcs_MetaDataAdd(CuTest* tc)
 
 	CuAssertTrue(tc, strcmp(value, "Glenn Value") == 0);
 
-	IcsClose(ics);
+	FreeImageIcs_IcsClose(ics);
 };
 
 static void
@@ -49,14 +46,14 @@ TestFreeImageIcs_SwapDimensionIcsTest(CuTest* tc)
 
 	char *file = "C:\\Documents and Settings\\Pierce\\Desktop\\SarSeven_xyt.ics";
 
-	err = IcsOpen (&ics, file, "r");
+	err = FreeImageIcs_IcsOpen (&ics, file, "r");
 
     CuAssertTrue(tc, err == IcsErr_Ok);
 
     FreeImageIcs_SaveIcsFileWithDimensionsSwapped(ics, "C:\\Documents and Settings\\Pierce\\Desktop\\ics_swapped.ics",
         0, 2);
 
-	IcsClose(ics);
+	FreeImageIcs_IcsClose(ics);
 }
 
 static void
@@ -68,7 +65,7 @@ TestFreeImageIcs_ReadMultiDimensionalGreyScale(CuTest* tc)
 
 	char *file = TEST_IMAGE_DIR "multidimensional.ics";
 
-	err = IcsOpen (&ics, file, "r");
+	err = FreeImageIcs_IcsOpen (&ics, file, "r");
 
     CuAssertTrue(tc, err == IcsErr_Ok);
 
@@ -80,7 +77,7 @@ TestFreeImageIcs_ReadMultiDimensionalGreyScale(CuTest* tc)
 
 	FreeImage_Unload(fib);
 
-	IcsClose(ics);
+	FreeImageIcs_IcsClose(ics);
 }
 
 
@@ -94,7 +91,7 @@ TestFreeImageIcs_ReadMultiDimensionalGreyScaleSlice(CuTest* tc)
 
 	char *file = TEST_IMAGE_DIR "multidimensional2.ics";
 
-	err = IcsOpen (&ics, file, "r");
+	err = FreeImageIcs_IcsOpen (&ics, file, "r");
 
     CuAssertTrue(tc, err == IcsErr_Ok);
 
@@ -106,7 +103,7 @@ TestFreeImageIcs_ReadMultiDimensionalGreyScaleSlice(CuTest* tc)
 
 	FreeImage_Unload(fib);
 
-	IcsClose(ics);
+	FreeImageIcs_IcsClose(ics);
 }
 
 
@@ -119,7 +116,7 @@ TestFreeImageIcs_ReadMultiDimensionalColour(CuTest* tc)
 
 	char *file = TEST_IMAGE_DIR "colour_test.ics";
 
-	err = IcsOpen (&ics, file, "r");
+	err = FreeImageIcs_IcsOpen (&ics, file, "r");
 
 	fib = FreeImageIcs_LoadFIBFromIcsFile (ics);
 
@@ -129,7 +126,7 @@ TestFreeImageIcs_ReadMultiDimensionalColour(CuTest* tc)
 
 	FreeImage_Unload(fib);
 
-	IcsClose(ics);
+	FreeImageIcs_IcsClose(ics);
 }
 
 
@@ -142,7 +139,7 @@ TestFreeImageIcs_Read12BitIcs(CuTest* tc)
 
 	char *file = TEST_IMAGE_DIR "12bittest.ics";
 
-	err = IcsOpen (&ics, file, "r");
+	err = FreeImageIcs_IcsOpen (&ics, file, "r");
 
 	fib = FreeImageIcs_LoadFIBFromIcsFile (ics);
 
@@ -152,7 +149,7 @@ TestFreeImageIcs_Read12BitIcs(CuTest* tc)
 
 	FreeImage_Unload(fib);
 
-	IcsClose(ics);
+	FreeImageIcs_IcsClose(ics);
 }
 
 
@@ -166,7 +163,7 @@ TestFreeImageIcs_ResizeTest(CuTest* tc)
 	char *file = "C:\\Documents and Settings\\Pierce\\Desktop\\test\\what.ics";
 	//char *file = "C:\\Documents and Settings\\Pierce\\Desktop\\test\\rjl.ics";
 
-	err = IcsOpen(&ics, file, "r");
+	err = FreeImageIcs_IcsOpen(&ics, file, "r");
 
 	if(err != IcsErr_Ok)
 		return;
@@ -187,7 +184,7 @@ TestFreeImageIcs_ResizeTest(CuTest* tc)
 	FreeImage_Unload(dib1);
 	FreeImage_Unload(dib2);
 
-	IcsClose(ics);
+	FreeImageIcs_IcsClose(ics);
 }
 
 

@@ -132,20 +132,17 @@ FreeImageIcs_SaveIcsFileWithDimensionsSwapped(ICS *ics, const char *filepath, in
 
     bufsize = IcsGetDataSize (ics);
 
-    BYTE *bits, *start_bits;
-    
-    bits = start_bits = (BYTE*) malloc(bufsize);
+    BYTE *old_bits = NULL, *tmp_old_bits = NULL;
+	BYTE *bits = NULL, *tmp_bits = NULL;
+
+    old_bits = tmp_old_bits = (BYTE*) malloc(bufsize);
 
     // Get data from old ics file and reorder into new.
-    if((err = IcsGetData (ics, bits, bufsize)) != IcsErr_Ok)
+    if((err = IcsGetData (ics, old_bits, bufsize)) != IcsErr_Ok)
    		goto Error;
 
-    BYTE *new_bits, *start_new_bits;
-        
-    new_bits = start_new_bits = (BYTE*) malloc(bufsize);
-
-    if (new_bits == NULL)
-        goto Error;
+    if((bits = tmp_bits = (BYTE*) malloc(bufsize)) == NULL)
+		goto Error;
 
     if( IcsSetLayout(new_ics, dt, ndims, (size_t *) dims) != IcsErr_Ok)
 		goto Error;
@@ -158,26 +155,23 @@ FreeImageIcs_SaveIcsFileWithDimensionsSwapped(ICS *ics, const char *filepath, in
     GetTotalDimensionalDataSize(ics, smaller_dim, &smaller_dim_size);
     GetTotalDimensionalDataSize(ics, larger_dim, &larger_dim_size);
 
-    // Dont start at beginning as data for all dimensions is shared there
-    new_bits += smaller_dim_size;
-    bits += larger_dim_size;
-
     // Loop through the data 
     int bytes_per_pixel =  GetIcsDataTypeBPP (dt) / 8;
+	int offset = 0;
 
-    for(size_t j=1; j < dims[larger_dim]; j++) {
+    for(size_t j=0; j < dims[smaller_dim]; j++) {
 
-        bits = start_bits + (j * smaller_dim_size);
-
-        for(size_t i=1; i < dims[smaller_dim]; i++) {
+        for(size_t i=0; i < dims[larger_dim]; i++) {
     
-            memcpy(new_bits, bits, bytes_per_pixel);
-            new_bits += smaller_dim_size;
-            bits += larger_dim_size;
+            memcpy(tmp_bits, tmp_old_bits, smaller_dim_size);
+            tmp_bits += smaller_dim_size;
+            tmp_old_bits += larger_dim_size;
         }
+
+		tmp_old_bits = old_bits + (smaller_dim_size * j);
     }
 
-    if( (err = IcsSetData(new_ics, start_new_bits, bufsize)) != IcsErr_Ok)
+    if( (err = IcsSetData(new_ics, bits, bufsize)) != IcsErr_Ok)
 		goto Error;
 		
 	if( IcsSetCompression (new_ics, IcsCompr_gzip, 0) != IcsErr_Ok)
@@ -186,18 +180,18 @@ FreeImageIcs_SaveIcsFileWithDimensionsSwapped(ICS *ics, const char *filepath, in
 	if( IcsClose (new_ics) != IcsErr_Ok)
 		goto Error;
 
-	free(start_bits);
-    free(start_new_bits);
+	free(bits);
+    free(old_bits);
     
 	return FREEIMAGE_ALGORITHMS_SUCCESS;
 
 	Error:
 
-	if(start_bits)
-		free(start_bits);
+	if(bits)
+		free(bits);
 
-    if(start_new_bits)
-		free(start_new_bits);
+    if(old_bits)
+		free(old_bits);
 
 	return FREEIMAGE_ALGORITHMS_ERROR;
 }
@@ -430,8 +424,8 @@ FreeImage_GetBitsVerticalFlip(FIBITMAP *dib, BYTE *bytes)
 	}
 }
 
-int DLL_CALLCONV
-FreeImageIcs_SaveGreyScaleImage (FIBITMAP *dib, const char *filepath)
+int
+SaveGreyScaleImage (FIBITMAP *dib, const char *filepath)
 {
 	ICS* ics;
 	Ics_Error err;
@@ -491,8 +485,8 @@ FreeImageIcs_SaveGreyScaleImage (FIBITMAP *dib, const char *filepath)
 }
 
 
-int DLL_CALLCONV
-FreeImageIcs_SaveColourImage (FIBITMAP *dib, const char *filepath)
+static int
+SaveColourImage (FIBITMAP *dib, const char *filepath)
 {
 	ICS* ics;
 	Ics_Error err;
@@ -560,9 +554,9 @@ int DLL_CALLCONV
 FreeImageIcs_SaveImage (FIBITMAP *dib, const char *filepath)
 {
 	if(FreeImageAlgorithms_IsGreyScale(dib))
-		return FreeImageIcs_SaveGreyScaleImage (dib, filepath);
+		return SaveGreyScaleImage (dib, filepath);
 	else
-		return FreeImageIcs_SaveColourImage (dib, filepath);
+		return SaveColourImage (dib, filepath);
 }
 
 Ics_Error DLL_CALLCONV
