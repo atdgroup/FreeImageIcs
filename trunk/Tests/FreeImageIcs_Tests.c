@@ -10,7 +10,7 @@
 
 #include <assert.h>
 
-#define TEST_IMAGE_DIR "C:\\Documents and Settings\\Pierce\\Desktop\\development\\Working Area\\Test Images\\"
+#define TEST_IMAGE_DIR "C:\\Documents and Settings\\Pierce\\Desktop\\Working Area\\Test Images\\"
 
 static void
 TestFreeImageIcs_MetaDataAdd(CuTest* tc)
@@ -38,8 +38,26 @@ TestFreeImageIcs_MetaDataAdd(CuTest* tc)
 	CuAssertTrue(tc, strcmp(value, "Glenn Value") == 0);
 
 	IcsClose(ics);
-}
+};
 
+static void
+TestFreeImageIcs_SwapDimensionIcsTest(CuTest* tc)
+{
+	ICS *ics;
+	Ics_Error err;
+	FIBITMAP* fib;
+
+	char *file = TEST_IMAGE_DIR "multidimensional.ics";
+
+	err = IcsOpen (&ics, file, "r");
+
+    CuAssertTrue(tc, err == IcsErr_Ok);
+
+    FreeImageIcs_SaveIcsFileWithDimensionsSwapped(ics, "C:\\Documents and Settings\\Pierce\\Desktop\\ics_swapped.ics",
+        2, 1);
+
+	IcsClose(ics);
+}
 
 static void
 TestFreeImageIcs_ReadMultiDimensionalGreyScale(CuTest* tc)
@@ -51,6 +69,8 @@ TestFreeImageIcs_ReadMultiDimensionalGreyScale(CuTest* tc)
 	char *file = TEST_IMAGE_DIR "multidimensional.ics";
 
 	err = IcsOpen (&ics, file, "r");
+
+    CuAssertTrue(tc, err == IcsErr_Ok);
 
 	fib = FreeImageIcs_LoadFIBFromIcsFile (ics);
 
@@ -76,7 +96,9 @@ TestFreeImageIcs_ReadMultiDimensionalGreyScaleSlice(CuTest* tc)
 
 	err = IcsOpen (&ics, file, "r");
 
-	fib = FreeImageIcs_GetIcsImageDataSlice(ics, 2, 15);
+    CuAssertTrue(tc, err == IcsErr_Ok);
+
+	fib = FreeImageIcs_GetIcsImageXYDataSlice(ics, 1, 1);
 
 	assert(fib != NULL);
 
@@ -179,7 +201,8 @@ CuGetFreeImageIcsTestSuite(void)
 	//SUITE_ADD_TEST(suite, TestFreeImageIcs_ReadMultiDimensionalGreyScaleSlice);
 	//SUITE_ADD_TEST(suite, TestFreeImageIcs_ReadMultiDimensionalColour);
 	//SUITE_ADD_TEST(suite, TestFreeImageIcs_Read12BitIcs);
-	SUITE_ADD_TEST(suite, TestFreeImageIcs_ResizeTest);
+	//SUITE_ADD_TEST(suite, TestFreeImageIcs_ResizeTest);
+    SUITE_ADD_TEST(suite, TestFreeImageIcs_SwapDimensionIcsTest);
 
 	return suite;
 }

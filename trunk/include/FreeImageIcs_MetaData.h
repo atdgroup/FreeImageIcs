@@ -42,13 +42,6 @@ FreeImageIcs_SetIcsHistoryKeyValueStrings(ICS *ics, ...);
 
 
 /*
-Add history_String.
-*/
-DLL_API int DLL_CALLCONV
-FreeImageIcs_AddIcsHistoryString(ICS *ics, char *history_string);
-
-
-/*
 Add more than one history strings in one go.
 The var argument must end in NULL.
 */
