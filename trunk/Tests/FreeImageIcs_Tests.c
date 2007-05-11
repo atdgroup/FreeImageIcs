@@ -47,14 +47,14 @@ TestFreeImageIcs_SwapDimensionIcsTest(CuTest* tc)
 	Ics_Error err;
 	FIBITMAP* fib;
 
-	char *file = TEST_IMAGE_DIR "multidimensional.ics";
+	char *file = "C:\\Documents and Settings\\Pierce\\Desktop\\SarSeven_xyt.ics";
 
 	err = IcsOpen (&ics, file, "r");
 
     CuAssertTrue(tc, err == IcsErr_Ok);
 
     FreeImageIcs_SaveIcsFileWithDimensionsSwapped(ics, "C:\\Documents and Settings\\Pierce\\Desktop\\ics_swapped.ics",
-        2, 1);
+        0, 2);
 
 	IcsClose(ics);
 }

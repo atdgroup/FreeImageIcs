@@ -17,32 +17,26 @@
 // GetTotalDimensionalDataSize(ics, 2, &size)
 // size would return the size of the all the t dimensions below each z dimension.
 static Ics_Error DLL_CALLCONV
-GetTotalDimensionalDataSizeFromDims(Ics_DataType dataType, size_t *dims, int ndims, int dimension, size_t *size)
-{
-	if(dimension < 0 || dimension > ndims)
-		return IcsErr_NotValidAction;
-
-	size_t total_size = 1; 
-
-	// Get the combined size of all the dimension after x,y.
-	for (int i=0; i <= dimension; i++)
-		total_size *= dims[i];
-
-	*size = (total_size * GetIcsDataTypeBPP (dataType)) / 8;
-	
-	return IcsErr_Ok;
-}
-
-static Ics_Error DLL_CALLCONV
 GetTotalDimensionalDataSize(ICS *ics, int dimension, size_t *size)
 {
-	Ics_DataType dataType;
+    Ics_DataType dataType;
 	int ndims;
 	size_t dims[ICS_MAXDIM];
 
 	IcsGetLayout (ics, &dataType, &ndims, dims);
 
-    return GetTotalDimensionalDataSizeFromDims(dataType, dims, ndims, dimension, size);
+    if(dimension < 0 || dimension > ndims)
+		return IcsErr_NotValidAction;
+
+	size_t total_size = 1; 
+
+	// Get the combined size of all the dimension after x,y.
+	for (int i=1; i <= dimension; i++)
+		total_size *= dims[i];
+
+	*size = (total_size * GetIcsDataTypeBPP (dataType)) / 8;
+	
+	return IcsErr_Ok;
 }
 
 
@@ -100,79 +94,90 @@ FreeImageIcs_CreateFIB(BYTE *data, Ics_DataType icsType, int bpp, int width, int
 }
 
 
+static void swap_dims(size_t *dims, size_t dim1, size_t dim2)
+{
+    size_t tmp;
+
+    tmp = dims[dim1];
+    dims[dim1] = dims[dim2];
+    dims[dim2] = tmp;
+}
+
+
 int DLL_CALLCONV
-FreeImageIcs_SaveIcsFileWithDimensionsSwapped(ICS *ics, const char *filepath, int horizontal_axis, int vertical_axis)
+FreeImageIcs_SaveIcsFileWithDimensionsSwapped(ICS *ics, const char *filepath, int dim1, int dim2)
 {
 	Ics_Error err;
     ICS *new_ics;
 	int ndims;
-	size_t old_dims[10], new_dims[10];
-	int bufsize;
-	int bytes_per_pixel;
+	size_t dims[10];
+	size_t bufsize;
+    Ics_DataType dt;
 
 	if(ics == NULL)
-		return FREEIMAGE_ALGORITHMS_ERROR;
-
+		goto Error;
+	
     // Create new ics file that contails the swapped dimensions
 	if((err = IcsOpen (&new_ics, filepath, "w2")) != IcsErr_Ok)
-   		return FREEIMAGE_ALGORITHMS_ERROR; 
-	
-    Ics_DataType old_dt;
-    
+   		goto Error;
+  
     // Get number of dimensions in old ics file
-    if((err = IcsGetLayout(ics, &old_dt, &ndims, old_dims)) != IcsErr_Ok)
-   		return FREEIMAGE_ALGORITHMS_ERROR; 
+    if((err = IcsGetLayout(ics, &dt, &ndims, dims)) != IcsErr_Ok)
+   		goto Error;
 	
-    if(horizontal_axis >= ndims || vertical_axis >= ndims)
-        return FREEIMAGE_ALGORITHMS_ERROR; 
+    if(dim1 > ndims || dim2 > ndims)
+       goto Error;
 
-    memcpy(new_dims, old_dims, sizeof(old_dims));
+    swap_dims(dims, dim1, dim2);
 
-    // Swapped dimension sizes in new_dims array
-    int old_horizontal_axis_dim = new_dims[0];
-    int old_vertical_axis_dim = new_dims[1];
+    bufsize = IcsGetDataSize (ics);
 
-    new_dims[0] = new_dims[horizontal_axis];
-    new_dims[horizontal_axis] = old_horizontal_axis_dim;
+    BYTE *bits, *start_bits;
+    
+    bits = start_bits = (BYTE*) malloc(bufsize);
 
-    new_dims[1] = new_dims[vertical_axis];
-    new_dims[vertical_axis] = old_vertical_axis_dim;
-
-	//IcsSetOrder  (ics, 0, "x", "x-position");
-	//IcsSetOrder  (ics, 1, "y", "y-position");
-	//IcsAddHistory  (ics, "labels", "x y");
-
-    size_t old_bufsize = IcsGetDataSize (ics);
-
-    BYTE *bits = (BYTE*) malloc(old_bufsize);
-    BYTE* old_bits = (BYTE*) malloc (old_bufsize);
-
-    if (old_bits == NULL)
-        return FREEIMAGE_ALGORITHMS_ERROR; 
-      
     // Get data from old ics file and reorder into new.
-    if((err = IcsGetData (ics, old_bits, old_bufsize)) != IcsErr_Ok)
-   		return FREEIMAGE_ALGORITHMS_ERROR; 
+    if((err = IcsGetData (ics, bits, bufsize)) != IcsErr_Ok)
+   		goto Error;
 
-    if( IcsSetLayout(new_ics, old_dt, ndims, (size_t *) new_dims) != IcsErr_Ok)
+    BYTE *new_bits, *start_new_bits;
+        
+    new_bits = start_new_bits = (BYTE*) malloc(bufsize);
+
+    if (new_bits == NULL)
+        goto Error;
+
+    if( IcsSetLayout(new_ics, dt, ndims, (size_t *) dims) != IcsErr_Ok)
 		goto Error;
 
-    size_t horizontal_dim_tsize, vertical_dim_tsize, old_horzontal_dim_tsize, old_verticlal_dim_tsize;
+    size_t larger_dim_size, smaller_dim_size;
 
-    GetTotalDimensionalDataSize(ics, 0, &old_horizontal_dim_tsize);
-    GetTotalDimensionalDataSize(ics, 1, &old_vertical_dim_tsize);
-    
-    if(old_dims[0]
-    GetTotalDimensionalDataSize(ics, horizontal_axis, &horizontal_dim_tsize);
-    GetTotalDimensionalDataSize(ics, vertical_axis, &vertical_dim_tsize);
+    int smaller_dim = MIN(dim1, dim2);
+    int larger_dim = MAX(dim1, dim2);
+
+    GetTotalDimensionalDataSize(ics, smaller_dim, &smaller_dim_size);
+    GetTotalDimensionalDataSize(ics, larger_dim, &larger_dim_size);
+
+    // Dont start at beginning as data for all dimensions is shared there
+    new_bits += smaller_dim_size;
+    bits += larger_dim_size;
 
     // Loop through the data 
-    // Do the horizonatl axis first
+    int bytes_per_pixel =  GetIcsDataTypeBPP (dt) / 8;
+
+    for(size_t j=1; j < dims[larger_dim]; j++) {
+
+        bits = start_bits + (j * smaller_dim_size);
+
+        for(size_t i=1; i < dims[smaller_dim]; i++) {
     
+            memcpy(new_bits, bits, bytes_per_pixel);
+            new_bits += smaller_dim_size;
+            bits += larger_dim_size;
+        }
+    }
 
-  //  old_bits
-
-	if( (err = IcsSetData(new_ics, bits, old_bufsize)) != IcsErr_Ok)
+    if( (err = IcsSetData(new_ics, start_new_bits, bufsize)) != IcsErr_Ok)
 		goto Error;
 		
 	if( IcsSetCompression (new_ics, IcsCompr_gzip, 0) != IcsErr_Ok)
@@ -181,14 +186,18 @@ FreeImageIcs_SaveIcsFileWithDimensionsSwapped(ICS *ics, const char *filepath, in
 	if( IcsClose (new_ics) != IcsErr_Ok)
 		goto Error;
 
-	free(bits);
-
+	free(start_bits);
+    free(start_new_bits);
+    
 	return FREEIMAGE_ALGORITHMS_SUCCESS;
 
 	Error:
 
-	if(bits)
-		free(bits);
+	if(start_bits)
+		free(start_bits);
+
+    if(start_new_bits)
+		free(start_new_bits);
 
 	return FREEIMAGE_ALGORITHMS_ERROR;
 }
@@ -236,7 +245,8 @@ FreeImageIcs_GetIcsImageXYDataSlice(ICS *ics, int dimension, int slice)
 		return NULL;
 	}
 
-	FIBITMAP *dib = FreeImageIcs_CreateFIB(buf, dataType, GetIcsDataTypeBPP (dataType), (int) dims[0], (int) dims[1], 0, 0);
+	FIBITMAP *dib =
+        FreeImageIcs_CreateFIB(buf, dataType, GetIcsDataTypeBPP (dataType), (int) dims[0], (int) dims[1], 0, 0);
 	
 	free(buf);
 
