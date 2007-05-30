@@ -1,8 +1,7 @@
 #ifndef __FREEIMAGE_ALGORITHMS_PRIVATE__
 #define __FREEIMAGE_ALGORITHMS_PRIVATE__
 
-#include "FreeImageAlgorithms.h"
-#include "libics.h"
+#include "FreeImageIcs_IO.h"
 
 extern const char* const Errors[];
 

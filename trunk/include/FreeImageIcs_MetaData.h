@@ -5,9 +5,7 @@
 extern "C" {
 #endif
 
-#include "FreeImageAlgorithms.h"
 #include "FreeImageIcs_IO.h"
-#include "libics.h"
 
 DLL_API int DLL_CALLCONV
 FreeImageIcs_GetIcsHistoryStringCount(ICS *ics);
@@ -82,6 +80,9 @@ FreeImageIcs_GetHistoryText(ICS *ics, char *text);
 DLL_API int DLL_CALLCONV
 FreeImageIcs_GetHistoryTextFromFile(const char *filepath, char *text);
 
+
+DLL_API int DLL_CALLCONV
+FreeImageIcs_CopyHistoryText(ICS *ics, ICS *dst_ics);
 
 #ifdef __cplusplus
 }

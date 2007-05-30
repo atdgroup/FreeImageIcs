@@ -2,6 +2,8 @@
 #include "FreeImageIcs_Private.h"
 #include "FreeImageIcs_IO.h"
 
+#include "libics.h"
+
 #include <iostream>
 
 static char*
@@ -24,11 +26,13 @@ FreeImageIcs_GetLabelForDimension (ICS *ics, int dimension, char *label)
 {
 	char labels[ICS_LINE_LENGTH];
 
-	FreeImageIcs_GetFirstIcsHistoryValueWithKey(ics, "labels", labels);
+    int no_of_dimensions = FreeImageIcs_NumberOfDimensions (ics);
+
+	FreeImageIcs_GetFirstIcsHistoryValueWithKey(ics, "Labels", labels);
 
 	char *result = strtok(labels, " ");
 
-	if(dimension <= 0)
+	if(dimension < 0 || dimension >= no_of_dimensions)
 		strcpy(label, result);
 
 	for(int i = 1; i <= dimension; i++) {
@@ -97,8 +101,9 @@ int DLL_CALLCONV
 FreeImageIcs_GetFirstIcsHistoryValueWithKey(ICS *ics, char *key, char *value)
 {
 	Ics_HistoryIterator it;     
+    Ics_Error err;
 
-	if(IcsNewHistoryIterator (ics, &it, key) != IcsErr_Ok)
+	if((err = IcsNewHistoryIterator (ics, &it, key)) != IcsErr_Ok)
 		return FREEIMAGE_ALGORITHMS_ERROR;	
 
 	if(IcsGetHistoryKeyValueI (ics, &it, NULL, value) != IcsErr_Ok)
@@ -112,11 +117,15 @@ int DLL_CALLCONV
 FreeImageIcs_ReplaceIcsHistoryValueForKey(ICS *ics, char *key, char *value)
 {
 	Ics_HistoryIterator it;     
+    char temp[ICS_LINE_LENGTH], tmp_key[ICS_LINE_LENGTH];
 
 	if(IcsNewHistoryIterator (ics, &it, key) != IcsErr_Ok)
 		return FREEIMAGE_ALGORITHMS_ERROR;	
+   
+    if(IcsDeleteHistory (ics, key) != IcsErr_Ok)
+		return FREEIMAGE_ALGORITHMS_ERROR;	
 
-	if(IcsReplaceHistoryStringI (ics, &it, key, value) != IcsErr_Ok)
+    if(IcsAddHistoryString (ics, key, value) != IcsErr_Ok)
 		return FREEIMAGE_ALGORITHMS_ERROR;	
 
 	return FREEIMAGE_ALGORITHMS_SUCCESS;
@@ -260,4 +269,28 @@ FreeImageIcs_GetHistoryTextFromFile(const char *filepath, char *text)
 	IcsClose(ics);
 
 	return ret;
+}
+
+
+int DLL_CALLCONV
+FreeImageIcs_CopyHistoryText(ICS *ics, ICS *dst_ics)
+{
+	Ics_HistoryIterator it;     
+	char buffer[ICS_LINE_LENGTH];
+
+	if(FreeImageIcs_GetIcsHistoryStringCount(ics) <= 0)
+		return FREEIMAGE_ALGORITHMS_ERROR;	
+
+	if(IcsNewHistoryIterator (ics, &it, NULL) != IcsErr_Ok)
+		return FREEIMAGE_ALGORITHMS_ERROR;	
+
+	while (it.next >= 0) { 
+	  
+    	if(IcsGetHistoryStringI (ics, &it, buffer) != IcsErr_Ok)	   // get next string, update iterator 
+			continue;    
+	 
+		IcsAddHistoryString (dst_ics, NULL, buffer);
+	}	
+
+	return FREEIMAGE_ALGORITHMS_SUCCESS;
 }

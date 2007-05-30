@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 #include "FreeImageAlgorithms.h"
+
 #include "libics.h"
 
 DLL_API int DLL_CALLCONV
@@ -30,7 +31,7 @@ DLL_API FIBITMAP* DLL_CALLCONV
 FreeImageIcs_LoadFIBFromIcsFilePath (const char* filepath);
 
 DLL_API FIBITMAP* DLL_CALLCONV
-FreeImageIcs_GetIcsImageXYDataSlice(ICS *ics, int dimension, int slice);
+FreeImageIcs_GetIcsImageDimensionalDataSlice(ICS *ics, int dimension, int slice);
 
 DLL_API int DLL_CALLCONV
 FreeImageIcs_SaveImage (FIBITMAP *dib, const char *filepath);
@@ -52,7 +53,7 @@ DLL_API Ics_Error DLL_CALLCONV
 FreeImageIcs_IcsGetHistoryStringI (ICS* ics, Ics_HistoryIterator* it, char* string);
 
 DLL_API int DLL_CALLCONV
-FreeImageIcs_SaveIcsFileWithDimensionsSwapped(ICS *ics, const char *filepath, int horizontal_axis, int vertical_axis);
+FreeImageIcs_SaveIcsFileWithDimensionsSwapped(ICS *ics, const char *filepath, int dim1, int dim2);
 
 #ifdef __cplusplus
 }
