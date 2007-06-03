@@ -115,90 +115,6 @@ static void swap_dims(size_t *dims, size_t dim1, size_t dim2)
     dims[dim2] = tmp;
 }
 
-
-/*
-int DLL_CALLCONV
-FreeImageIcs_CreateTestImage(const char *filepath)
-{
-	Ics_Error err;
-    ICS *new_ics;
-	int ndims;
-    size_t dims[3] = {4, 3, 2};
-	size_t bufsize;
-    Ics_DataType dt = Ics_uint8;
-
-    // Create new ics file that contails the swapped dimensions
-	if((err = IcsOpen (&new_ics, filepath, "w2")) != IcsErr_Ok)
-   		goto Error;
-  
-    BYTE bits[] = {0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5};
-    BYTE *tmp_bits = NULL;
-
-    tmp_bits = bits;
-
-    bufsize = 24 * GetIcsDataTypeBPP (dt) / 8;
-
-    if( IcsSetLayout(new_ics, dt, 3, (size_t *) dims) != IcsErr_Ok)
-		goto Error;
-
-    if( (err = IcsSetData(new_ics, bits, bufsize)) != IcsErr_Ok)
-		goto Error;
-		
-	//if( IcsSetCompression (new_ics, IcsCompr_gzip, 0) != IcsErr_Ok)
-	//	goto Error;
-	
-	if( IcsClose (new_ics) != IcsErr_Ok)
-		goto Error;
-	
-	return FREEIMAGE_ALGORITHMS_SUCCESS;
-
-	Error:
-
-	return FREEIMAGE_ALGORITHMS_ERROR;
-}
-
-int DLL_CALLCONV
-FreeImageIcs_TestOpen(const char *filepath)
-{
-	Ics_Error err;
-    ICS *ics;
-	int ndims;
-	size_t old_dims[10], dims[10];
-	size_t bufsize;
-    Ics_DataType dt;
-
-    // Create new ics file that contails the swapped dimensions
-	if((err = IcsOpen (&ics, filepath, "r")) != IcsErr_Ok)
-   		goto Error;
-  
-    // Get number of dimensions in old ics file
-    if((err = IcsGetLayout(ics, &dt, &ndims, dims)) != IcsErr_Ok)
-   		goto Error;
-	
-    bufsize = IcsGetDataSize (ics);
-
-    BYTE *old_bits = (BYTE*) malloc(bufsize);
-
-    // Get data from old ics file and reorder into new.
-    if((err = IcsGetData (ics, old_bits, bufsize)) != IcsErr_Ok)
-   		goto Error;
-	
-	if( IcsClose (ics) != IcsErr_Ok)
-		goto Error;
-
-    free(old_bits);
-    
-	return FREEIMAGE_ALGORITHMS_SUCCESS;
-
-	Error:
-
-    if(old_bits)
-		free(old_bits);
-
-	return FREEIMAGE_ALGORITHMS_ERROR;
-}
-*/
-
 inline std::vector<std::string> split( const std::string& s, const std::string& f ) {
 
     std::vector<std::string> temp;
@@ -221,7 +137,7 @@ inline std::vector<std::string> split( const std::string& s, const std::string& 
 }
 
 int DLL_CALLCONV
-SwitchDimensionLabels (ICS *ics, char*out, int dim1, int dim2)
+SwitchDimensionLabels (ICS *ics, char*out, size_t* order)
 {
 	char labels[ICS_LINE_LENGTH];
  
@@ -229,143 +145,117 @@ SwitchDimensionLabels (ICS *ics, char*out, int dim1, int dim2)
         return FREEIMAGE_ALGORITHMS_ERROR;
 
     std::vector<std::string> words( split( labels, " " ) );
+	std::vector<std::string> ordered_words(words.size());
 
-    std::string tmp = words[dim1];
-    words[dim1] = words[dim2];
-    words[dim2] = tmp;
+	for(int i=0; i < words.size(); i++)
+		ordered_words[i] = words[order[i]];
 
     std::string output;
     std::vector<std::string>::size_type i;
 
-    for(i=0; i < words.size(); i++)
-        output += words[i] + " ";
+    for(i=0; i < ordered_words.size(); i++)
+        output += ordered_words[i] + " ";
 
     strcpy(out, output.c_str());
 
 	return FREEIMAGE_ALGORITHMS_SUCCESS;
 }
 
+// Returns strides for ics file.
+// Passed in array must be large enough for data.
+static void CalculateStrides(ICS *ics, size_t* dims, int ndims, size_t *strides)
+{
+	int val;
+
+	// Calculate the strides of the new data layout
+	strides[0] = 1;
+
+	for(int s = 1; s < ndims; s++)
+	{
+		val = 1;
+
+		for(int i = 0; i < s; i++)
+			val *= dims[i];
+
+		strides[s] = val;
+	}
+}
+
 int DLL_CALLCONV
-FreeImageIcs_SaveIcsFileWithDimensionsSwapped(ICS *ics, const char *filepath, int dim1, int dim2)
+FreeImageIcs_SaveIcsFileWithDimensionsAs(ICS *ics, const char *filepath, size_t* order, int size)
 {
 	Ics_Error err;
     ICS *new_ics;
-	int ndims;
+	int ndims, i;
 	size_t old_dims[10], dims[10];
 	size_t bufsize;
     Ics_DataType dt;
+
+	BYTE *old_bits = NULL, *tmp_old_bits = NULL;
+	BYTE *bits = NULL, *tmp_bits = NULL;
 
 	if(ics == NULL)
 		goto Error;
   
     // Create new ics file that contails the swapped dimensions
-	 if((err = IcsOpen (&new_ics, filepath, "w2")) != IcsErr_Ok)
+	if((err = IcsOpen (&new_ics, filepath, "w2")) != IcsErr_Ok)
    		goto Error;
 
     // Get number of dimensions in old ics file
-    if((err = IcsGetLayout(ics, &dt, &ndims, dims)) != IcsErr_Ok)
+    if((err = IcsGetLayout(ics, &dt, &ndims, old_dims)) != IcsErr_Ok)
    		goto Error;
 	
-    if(dim1 > ndims || dim2 > ndims)
-       goto Error;
+	// Check all dims given are valid
+	for(i=0; i < ndims; i++) {
 
-    memcpy(old_dims, dims, sizeof(size_t) * 10);
-    swap_dims(dims, dim1, dim2);
+		if(order[i] >= ndims)
+			goto Error;
+	}
 
     bufsize = IcsGetDataSize (ics);
 
-    BYTE *old_bits = NULL, *tmp_old_bits = NULL;
-	BYTE *bits = NULL, *tmp_bits = NULL;
+    bits = (BYTE*) malloc(bufsize);
 
-    old_bits = tmp_old_bits = (BYTE*) malloc(bufsize);
+	size_t strides[10], new_strides[10];
 
-    // Get data from old ics file and reorder into new.
-   // if((err = IcsGetData (ics, old_bits, bufsize)) != IcsErr_Ok)
-   //		goto Error;
-    
-    size_t strides[3] = {3, 2, 1};
+	// Get dims of order
+	for(i=0; i < size; i++)
+		dims[i] = old_dims[order[i]];
 
-    err = IcsGetDataWithStrides  (ics, old_bits, bufsize, strides, ndims);
+	CalculateStrides(ics, dims, ndims, strides);
 
-    if((bits = tmp_bits = (BYTE*) malloc(bufsize)) == NULL)
-		goto Error;
+	// Put strides in order we want
 
-    if( IcsSetLayout(new_ics, dt, ndims, (size_t *) dims) != IcsErr_Ok)
-		goto Error;
+	for(int i=0; i < size; i++)
+		new_strides[order[i]] = strides[i];
 
-    //int min_dim = MIN(dim1, dim2);
-    //int max_dim = MAX(dim1, dim2);
+	if((err = IcsGetDataWithStrides (ics, bits, bufsize, new_strides, ndims)) != IcsErr_Ok)
+   		goto Error;
 
-    //size_t min_size, max_size;
-
-    //GetSizeInBytesBetweenDimensions(old_dims, ndims, dt, min_dim, &min_size);
-    //GetSizeInBytesOfOneDimensionSlice(dims, ndims, dt, min_dim, &max_size);
-
-    
-
-    err = IcsSetDataWithStrides  (new_ics, old_bits, bufsize, strides, ndims);
-        
-    if(err != IcsErr_Ok) {
-        err = err;
-        goto Error;
-    }
-
-    printf("\n\n");
-    for(int i=0; i < bufsize; i++)
-        printf("%d = %d\n", i, old_bits[i]);
-
-
-    // Loop through the data 
-//	size_t offset = 0;
-
-   // while(orig_offset < bufsize) {
-
-      //  new_offset = orig_offset;
-        //tmp_old_bits = old_bits + offset; 
-
-        // Each element of the max_dim must be iterated
-/*
-    for(int i=0; i < old_dims[max_dim]; i++)
-        {
-
-            offset = i;
-            tmp_bits = bits + offset;
-
-            while(offset < bufsize) {
-    
-                memcpy(tmp_bits, tmp_old_bits, min_size);
-            
-                tmp_old_bits += min_size;
-                tmp_bits += max_size;
-                offset += max_size;
-            }
-        }
-*/
-        // Move samller dimension size along original data
-   //     orig_offset += min_size;
-  //      tmp_old_bits += min_size;
-  //  }
-
-    /*
     FreeImageIcs_CopyHistoryText(ics, new_ics);
 
     char out[100];
 
-    SwitchDimensionLabels (new_ics, out, dim1, dim2);
+	if(SwitchDimensionLabels (new_ics, out, order) == FREEIMAGE_ALGORITHMS_ERROR)
+		goto Error;
 
-    // Change Labels History
+	// Change Labels History
     FreeImageIcs_ReplaceIcsHistoryValueForKey(new_ics, "Labels", out);
 
     // Change the order
-    char order1[100], label1[100], order2[100], label2[100];
-    IcsGetOrder (ics, dim1, order1, label1);
-    IcsGetOrder (ics, dim2, order2, label2);
-    IcsSetOrder (new_ics, dim1, order2, label2);
-    IcsSetOrder (new_ics, dim2, order1, label1);
+	char order_str[100], label_str[100];
 
- //   if( (err = IcsSetData(new_ics, bits, bufsize)) != IcsErr_Ok)
-//		goto Error;
-*/
+	for(i=0; i < ndims; i++) {
+		IcsGetOrder (ics, old_dims[i], order_str, label_str);
+		IcsSetOrder (new_ics, dims[i], order_str, label_str);
+	}
+
+	// Get number of dimensions in old ics file
+    if( IcsSetLayout(new_ics, dt, ndims, (size_t *) dims) != IcsErr_Ok)
+		goto Error;
+
+    if( (err = IcsSetData(new_ics, bits, bufsize)) != IcsErr_Ok)
+		goto Error;
 
     if( (err = IcsSetCompression (new_ics, IcsCompr_gzip, 0)) != IcsErr_Ok)
 	    goto Error;
@@ -374,19 +264,20 @@ FreeImageIcs_SaveIcsFileWithDimensionsSwapped(ICS *ics, const char *filepath, in
 	    goto Error;
 
 	free(bits);
-    free(old_bits);
     
+	// change Labels
+
+//	if((err = IcsOpen (&new_ics, filepath, "rw")) != IcsErr_Ok)
+  // 		goto Error;
+
+	
+
 	return FREEIMAGE_ALGORITHMS_SUCCESS;
 
 	Error:
 
-    printf("ERROR");
-
 	if(bits)
 		free(bits);
-
-    if(old_bits)
-		free(old_bits);
 
 	return FREEIMAGE_ALGORITHMS_ERROR;
 }

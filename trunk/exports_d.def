@@ -1,0 +1,30 @@
+LIBRARY	"FreeImageIcs_d"
+EXPORTS
+    FreeImageIcs_IsIcsFile 
+    FreeImageIcs_NumberOfDimensions 
+    FreeImageIcs_GetLabelForDimension 
+    FreeImageIcs_GetDimensionDetails 
+    FreeImageIcs_IsIcsFileColourFile
+    FreeImageIcs_LoadFIBFromIcsFile
+    FreeImageIcs_LoadFIBFromIcsFilePath 
+    FreeImageIcs_GetIcsImageDimensionalDataSlice
+    FreeImageIcs_SaveImage
+    FreeImageIcs_IcsOpen 
+    FreeImageIcs_IcsClose 
+    FreeImageIcs_IcsAddHistoryString 
+    FreeImageIcs_IcsNewHistoryIterator 
+    FreeImageIcs_IcsGetHistoryStringI 
+    FreeImageIcs_SaveIcsFileWithDimensionsAs
+    FreeImageIcs_GetIcsHistoryStringCount
+    FreeImageIcs_SplitHistoryString
+    FreeImageIcs_JoinKeyValueIntoHistoryString
+    FreeImageIcs_SetIcsHistoryStrings
+    FreeImageIcs_SetIcsHistoryKeyValueStrings
+    FreeImageIcs_AddIcsHistoryKeyValueStrings
+    FreeImageIcs_SetIcsHistoryKeyValueStringsFromArray
+    FreeImageIcs_ReplaceIcsHistoryValueForKey
+    FreeImageIcs_GetFirstIcsHistoryValueWithKey
+    IsIcsHistoryIteratorValid 
+    FreeImageIcs_GetHistoryText
+    FreeImageIcs_GetHistoryTextFromFile
+

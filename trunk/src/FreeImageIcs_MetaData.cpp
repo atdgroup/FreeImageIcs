@@ -122,10 +122,10 @@ FreeImageIcs_ReplaceIcsHistoryValueForKey(ICS *ics, char *key, char *value)
 	if(IcsNewHistoryIterator (ics, &it, key) != IcsErr_Ok)
 		return FREEIMAGE_ALGORITHMS_ERROR;	
    
-    if(IcsDeleteHistory (ics, key) != IcsErr_Ok)
-		return FREEIMAGE_ALGORITHMS_ERROR;	
+	if(IcsGetHistoryKeyValueI (ics, &it, NULL, temp) != IcsErr_Ok)
+		return FREEIMAGE_ALGORITHMS_ERROR;
 
-    if(IcsAddHistoryString (ics, key, value) != IcsErr_Ok)
+    if(IcsReplaceHistoryStringI (ics, &it, key, value) != IcsErr_Ok)
 		return FREEIMAGE_ALGORITHMS_ERROR;	
 
 	return FREEIMAGE_ALGORITHMS_SUCCESS;

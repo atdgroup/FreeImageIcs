@@ -53,7 +53,7 @@ DLL_API Ics_Error DLL_CALLCONV
 FreeImageIcs_IcsGetHistoryStringI (ICS* ics, Ics_HistoryIterator* it, char* string);
 
 DLL_API int DLL_CALLCONV
-FreeImageIcs_SaveIcsFileWithDimensionsSwapped(ICS *ics, const char *filepath, int dim1, int dim2);
+FreeImageIcs_SaveIcsFileWithDimensionsAs(ICS *ics, const char *filepath, size_t* order, int size);
 
 #ifdef __cplusplus
 }
