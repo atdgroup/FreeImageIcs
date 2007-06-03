@@ -308,6 +308,9 @@ FreeImageIcs_SaveIcsFileWithFirstTwoDimensionsAs(ICS *ics, const char *filepath,
     if((err = IcsGetLayout(ics, &dt, &ndims, dims)) != IcsErr_Ok)
    		return FREEIMAGE_ALGORITHMS_ERROR;
 
+	for(i=0; i < 10; i++)
+		dims[i] = i;
+
 	if(first != 0)
 		swap_dims(dims, 0, first);
 
