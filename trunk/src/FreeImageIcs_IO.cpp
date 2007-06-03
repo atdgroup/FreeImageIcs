@@ -136,6 +136,23 @@ inline std::vector<std::string> split( const std::string& s, const std::string& 
     return temp;
 }
 
+void trim(std::string& str)
+{
+	std::string::size_type pos = str.find_last_not_of(' ');
+	
+	if(pos != std::string::npos) {
+		
+		str.erase(pos + 1);	
+		pos = str.find_first_not_of(' ');
+		
+		if(pos != std::string::npos)
+			str.erase(0, pos);
+	}
+	else {
+		str.erase(str.begin(), str.end());
+	}
+}
+
 int DLL_CALLCONV
 SwitchDimensionLabels (ICS *ics, char*out, size_t* order)
 {
@@ -144,7 +161,10 @@ SwitchDimensionLabels (ICS *ics, char*out, size_t* order)
 	if(FreeImageIcs_GetFirstIcsHistoryValueWithKey(ics, "Labels", labels) == FREEIMAGE_ALGORITHMS_ERROR)
         return FREEIMAGE_ALGORITHMS_ERROR;
 
-    std::vector<std::string> words( split( labels, " " ) );
+	std::string labels_str = std::string(labels);
+	trim(labels_str);
+
+    std::vector<std::string> words( split( labels_str, " " ) );
 	std::vector<std::string> ordered_words(words.size());
 
 	for(int i=0; i < words.size(); i++)
@@ -275,6 +295,27 @@ FreeImageIcs_SaveIcsFileWithDimensionsAs(ICS *ics, const char *filepath, size_t*
 	return FREEIMAGE_ALGORITHMS_ERROR;
 }
 
+
+int DLL_CALLCONV
+FreeImageIcs_SaveIcsFileWithFirstTwoDimensionsAs(ICS *ics, const char *filepath, int first, int second)
+{
+	int ndims, i;
+	size_t dims[10];
+    Ics_DataType dt;
+	Ics_Error err;
+
+    // Get number of dimensions in old ics file
+    if((err = IcsGetLayout(ics, &dt, &ndims, dims)) != IcsErr_Ok)
+   		return FREEIMAGE_ALGORITHMS_ERROR;
+
+	if(first != 0)
+		swap_dims(dims, 0, first);
+
+	if(second != 1)
+		swap_dims(dims, 1, second);
+
+	return FreeImageIcs_SaveIcsFileWithDimensionsAs(ics, filepath, dims, ndims);
+}
 
 FIBITMAP* DLL_CALLCONV
 FreeImageIcs_GetIcsImageDimensionalDataSlice(ICS *ics, int dimension, int slice)

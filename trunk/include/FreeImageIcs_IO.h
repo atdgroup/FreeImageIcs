@@ -55,6 +55,9 @@ FreeImageIcs_IcsGetHistoryStringI (ICS* ics, Ics_HistoryIterator* it, char* stri
 DLL_API int DLL_CALLCONV
 FreeImageIcs_SaveIcsFileWithDimensionsAs(ICS *ics, const char *filepath, size_t* order, int size);
 
+DLL_API int DLL_CALLCONV
+FreeImageIcs_SaveIcsFileWithFirstTwoDimensionsAs(ICS *ics, const char *filepath, int first, int second);
+
 #ifdef __cplusplus
 }
 #endif

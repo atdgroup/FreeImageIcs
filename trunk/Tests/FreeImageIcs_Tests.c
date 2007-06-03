@@ -30,20 +30,24 @@ TestFreeImageIcs_SwapDimensionIcsTest(CuTest* tc)
     CuAssertTrue(tc, err == IcsErr_Ok);
 	
 	
-
+//	FreeImageIcs_SaveIcsFileWithFirstTwoDimensionsAs(ics, "C:\\Temp\\swap_dimensions.ics", 0, 2);
+	
     FreeImageIcs_SaveIcsFileWithDimensionsAs(ics, out_file, order, 3);
 
     
 	FreeImageIcs_IcsClose(ics);
 
 
-	/*
+	order[0] = 2;
+	order[1] = 0;
+	order[2] = 1;
+
     err = FreeImageIcs_IcsOpen (&ics, out_file, "r");
 
     CuAssertTrue(tc, err == IcsErr_Ok);
 
-    FreeImageIcs_SaveIcsFileWithDimensionsAs(ics, "C:\\Documents and Settings\\Pierce\\Desktop\\ics_swapped_reversed.ics", 2, 1);
-*/
+    FreeImageIcs_SaveIcsFileWithDimensionsAs(ics, "C:\\Documents and Settings\\Pierce\\Desktop\\ics_swapped_reversed.ics", order, 3);
+
 
 }
 
