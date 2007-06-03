@@ -16,26 +16,34 @@ TestFreeImageIcs_SwapDimensionIcsTest(CuTest* tc)
 	ICS *ics, *new_ics;
 	Ics_Error err;
 	FIBITMAP* fib;
+	int order[3] = {1, 2, 0};
 
-	//char *file = "C:\\Documents and Settings\\Pierce\\Desktop\\xyt.ics";
-    char *file = "C:\\Documents and Settings\\Pierce\\Desktop\\testy.ics";
-    char *out_file = "C:\\Documents and Settings\\Pierce\\Desktop\\ics_swapped2.ics";
+    //char *file = "C:\\Documents and Settings\\Pierce\\Desktop\\testy.ics";
+    //char *out_file = "C:\\Documents and Settings\\Pierce\\Desktop\\testy_swapped.ics";
+
+	char *file = "C:\\Documents and Settings\\Pierce\\Desktop\\multidimensional.ics";
+    char *out_file = "C:\\Documents and Settings\\Pierce\\Desktop\\multidimensional_swapped.ics";
+
 
 	err = FreeImageIcs_IcsOpen (&ics, file, "r");
 
     CuAssertTrue(tc, err == IcsErr_Ok);
 	
-    FreeImageIcs_SaveIcsFileWithDimensionsSwapped(ics, out_file, 0, 2);
+	
+
+    FreeImageIcs_SaveIcsFileWithDimensionsAs(ics, out_file, order, 3);
 
     
 	FreeImageIcs_IcsClose(ics);
 
+
+	/*
     err = FreeImageIcs_IcsOpen (&ics, out_file, "r");
 
     CuAssertTrue(tc, err == IcsErr_Ok);
 
-    FreeImageIcs_SaveIcsFileWithDimensionsSwapped(ics, "C:\\Documents and Settings\\Pierce\\Desktop\\ics_swapped_reversed.ics", 2, 0);
-
+    FreeImageIcs_SaveIcsFileWithDimensionsAs(ics, "C:\\Documents and Settings\\Pierce\\Desktop\\ics_swapped_reversed.ics", 2, 1);
+*/
 
 }
 
@@ -163,12 +171,12 @@ CuGetFreeImageIcsTestSuite(void)
 	CuSuite* suite = CuSuiteNew();
 
 	//SUITE_ADD_TEST(suite, TestFreeImageIcs_MetaDataAdd);
-	SUITE_ADD_TEST(suite, TestFreeImageIcs_ReadMultiDimensionalGreyScale);
+	//SUITE_ADD_TEST(suite, TestFreeImageIcs_ReadMultiDimensionalGreyScale);
 	//SUITE_ADD_TEST(suite, TestFreeImageIcs_ReadMultiDimensionalGreyScaleSlice);
 	//SUITE_ADD_TEST(suite, TestFreeImageIcs_ReadMultiDimensionalColour);
 	//SUITE_ADD_TEST(suite, TestFreeImageIcs_GetDimensionalDetailTest);
 	//SUITE_ADD_TEST(suite, TestFreeImageIcs_LoadTest);
-    //SUITE_ADD_TEST(suite, TestFreeImageIcs_SwapDimensionIcsTest);
+    SUITE_ADD_TEST(suite, TestFreeImageIcs_SwapDimensionIcsTest);
 
 	return suite;
 }

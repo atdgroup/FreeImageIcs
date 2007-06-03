@@ -264,13 +264,6 @@ FreeImageIcs_SaveIcsFileWithDimensionsAs(ICS *ics, const char *filepath, size_t*
 	    goto Error;
 
 	free(bits);
-    
-	// change Labels
-
-//	if((err = IcsOpen (&new_ics, filepath, "rw")) != IcsErr_Ok)
-  // 		goto Error;
-
-	
 
 	return FREEIMAGE_ALGORITHMS_SUCCESS;
 
