@@ -30,7 +30,7 @@ TestFreeImageIcs_SwapDimensionIcsTest(CuTest* tc)
     CuAssertTrue(tc, err == IcsErr_Ok);
 	
 	
-	FreeImageIcs_SaveIcsFileWithFirstTwoDimensionsAs(ics, "C:\\Temp\\swap_dimensions.ics", 0, 2);
+	FreeImageIcs_SaveIcsFileWithFirstTwoDimensionsAs(ics, "C:\\Temp\\swap_dimensions.ics", 1, 2);
 	
 	/*
     FreeImageIcs_SaveIcsFileWithDimensionsAs(ics, out_file, order, 3);

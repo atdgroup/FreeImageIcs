@@ -117,7 +117,7 @@ int DLL_CALLCONV
 FreeImageIcs_ReplaceIcsHistoryValueForKey(ICS *ics, char *key, char *value)
 {
 	Ics_HistoryIterator it;     
-    char temp[ICS_LINE_LENGTH], tmp_key[ICS_LINE_LENGTH];
+    char temp[ICS_LINE_LENGTH];
 
 	if(IcsNewHistoryIterator (ics, &it, key) != IcsErr_Ok)
 		return FREEIMAGE_ALGORITHMS_ERROR;	

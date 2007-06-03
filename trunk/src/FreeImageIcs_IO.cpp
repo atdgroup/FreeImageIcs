@@ -136,7 +136,7 @@ inline std::vector<std::string> split( const std::string& s, const std::string& 
     return temp;
 }
 
-void trim(std::string& str)
+static void trim(std::string& str)
 {
 	std::string::size_type pos = str.find_last_not_of(' ');
 	
@@ -311,10 +311,10 @@ FreeImageIcs_SaveIcsFileWithFirstTwoDimensionsAs(ICS *ics, const char *filepath,
 	for(i=0; i < 10; i++)
 		dims[i] = i;
 
-	if(first != 0)
+	//if(first != 0)
 		swap_dims(dims, 0, first);
 
-	if(second != 1)
+	//if(second != 1)
 		swap_dims(dims, 1, second);
 
 	return FreeImageIcs_SaveIcsFileWithDimensionsAs(ics, filepath, dims, ndims);
