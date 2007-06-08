@@ -21,8 +21,8 @@ TestFreeImageIcs_SwapDimensionIcsTest(CuTest* tc)
     //char *file = "C:\\Documents and Settings\\Pierce\\Desktop\\testy.ics";
     //char *out_file = "C:\\Documents and Settings\\Pierce\\Desktop\\testy_swapped.ics";
 
-	char *file = "C:\\Documents and Settings\\Pierce\\Desktop\\multidimensional.ics";
-    char *out_file = "C:\\Documents and Settings\\Pierce\\Desktop\\multidimensional_swapped.ics";
+	char *file = "C:\\Documents and Settings\\Pierce\\Desktop\\SarSeven_txy.ics";
+    char *out_file = "C:\\Documents and Settings\\Pierce\\Desktop\\SarSeven_txy-done.ics";
 
 
 	err = FreeImageIcs_IcsOpen (&ics, file, "r");
@@ -30,7 +30,7 @@ TestFreeImageIcs_SwapDimensionIcsTest(CuTest* tc)
     CuAssertTrue(tc, err == IcsErr_Ok);
 	
 	
-	FreeImageIcs_SaveIcsFileWithFirstTwoDimensionsAs(ics, "C:\\Temp\\swap_dimensions.ics", 1, 2);
+	FreeImageIcs_SaveIcsFileWithFirstTwoDimensionsAs(ics, out_file, 2, 0);
 	
 	/*
     FreeImageIcs_SaveIcsFileWithDimensionsAs(ics, out_file, order, 3);
@@ -170,18 +170,46 @@ TestFreeImageIcs_LoadTest(CuTest* tc)
 }
 
 
+
+		
+
+
+static void
+TestFreeImageIcs_MetaDataAdd(CuTest* tc)
+{
+	ICS *ics;
+	Ics_Error err;
+	FIBITMAP* fib;
+    int size;
+    char order[50], label[50];
+
+	char *file = "C:\\Documents and Settings\\Pierce\\Desktop\\te.ics";
+
+	err = FreeImageIcs_IcsOpen (&ics, file, "rw");
+
+	err = FreeImageIcs_IcsAddHistoryString (ics, NULL, "Test1");
+    CuAssertTrue(tc, err == IcsErr_Ok);
+
+    err = FreeImageIcs_IcsAddHistoryString (ics, NULL, "Test2");
+    CuAssertTrue(tc, err == IcsErr_Ok);
+ 
+	err = FreeImageIcs_IcsClose(ics);
+    CuAssertTrue(tc, err == IcsErr_Ok);
+
+}
+
 CuSuite*
 CuGetFreeImageIcsTestSuite(void)
 {
 	CuSuite* suite = CuSuiteNew();
 
-	//SUITE_ADD_TEST(suite, TestFreeImageIcs_MetaDataAdd);
+	SUITE_ADD_TEST(suite, TestFreeImageIcs_MetaDataAdd);
 	//SUITE_ADD_TEST(suite, TestFreeImageIcs_ReadMultiDimensionalGreyScale);
 	//SUITE_ADD_TEST(suite, TestFreeImageIcs_ReadMultiDimensionalGreyScaleSlice);
 	//SUITE_ADD_TEST(suite, TestFreeImageIcs_ReadMultiDimensionalColour);
 	//SUITE_ADD_TEST(suite, TestFreeImageIcs_GetDimensionalDetailTest);
 	//SUITE_ADD_TEST(suite, TestFreeImageIcs_LoadTest);
-    SUITE_ADD_TEST(suite, TestFreeImageIcs_SwapDimensionIcsTest);
+    //SUITE_ADD_TEST(suite, TestFreeImageIcs_SwapDimensionIcsTest);
 
 	return suite;
 }

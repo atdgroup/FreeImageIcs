@@ -308,15 +308,24 @@ FreeImageIcs_SaveIcsFileWithFirstTwoDimensionsAs(ICS *ics, const char *filepath,
     if((err = IcsGetLayout(ics, &dt, &ndims, dims)) != IcsErr_Ok)
    		return FREEIMAGE_ALGORITHMS_ERROR;
 
-	for(i=0; i < 10; i++)
-		dims[i] = i;
+    dims[0] = first; 
+	dims[1] = second; 
+						
+	int count = 2; 
+			
+    // If we have dimensions [1,2,3,4,5,6]
+    // and we want 3 and 5 first and second the following code does this
+    //[3, 5, 1, 2, 4, 6]
 
-	//if(first != 0)
-		swap_dims(dims, 0, first);
-
-	//if(second != 1)
-		swap_dims(dims, 1, second);
-
+    // Find next value in old array not the first two
+	for(i=0; i < ndims; i++) {
+					
+		if(i == dims[0] || i == dims[1])    
+		    continue;
+					
+		dims[count++] = i;					
+	}
+			
 	return FreeImageIcs_SaveIcsFileWithDimensionsAs(ics, filepath, dims, ndims);
 }
 
@@ -555,7 +564,7 @@ FreeImage_GetBitsVerticalFlip(FIBITMAP *dib, BYTE *bytes)
 int
 SaveGreyScaleImage (FIBITMAP *dib, const char *filepath)
 {
-	ICS* ics;
+	ICS* ics = NULL;
 	Ics_Error err;
 	int ndims;
 	int dims[2];
@@ -582,6 +591,8 @@ SaveGreyScaleImage (FIBITMAP *dib, const char *filepath)
 
 	IcsSetOrder  (ics, 0, "x", "x-position");
 	IcsSetOrder  (ics, 1, "y", "y-position");
+    IcsDeleteHistory (ics, "labels");
+    IcsDeleteHistory (ics, "Labels");
 	IcsAddHistory  (ics, "labels", "x y");
 
 	BYTE *bits = (BYTE*) malloc(bufsize);
@@ -608,6 +619,9 @@ SaveGreyScaleImage (FIBITMAP *dib, const char *filepath)
 
 	if(bits)
 		free(bits);
+
+    if(ics != NULL)
+        IcsClose (ics);
 
 	return FREEIMAGE_ALGORITHMS_ERROR;
 }
@@ -650,6 +664,8 @@ SaveColourImage (FIBITMAP *dib, const char *filepath)
 	IcsSetOrder  (ics, 0, "x", "x-position");
 	IcsSetOrder  (ics, 1, "y", "y-position");
 	IcsSetOrder	 (ics, 2, "c", "colour");
+    IcsDeleteHistory (ics, "labels");
+    IcsDeleteHistory (ics, "Labels");
 	IcsAddHistory  (ics, "labels", "x y c");
 
 	BYTE *bits = (BYTE*) malloc(bufsize);
