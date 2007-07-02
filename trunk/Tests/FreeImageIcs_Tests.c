@@ -1,5 +1,8 @@
 #include "CuTest.h"
 #include "FreeImageAlgorithms_IO.h"
+#include "FreeImageAlgorithms_LinearScale.h"
+
+#include "BasicWin32Window.h"
 
 #include "FreeImageIcs_IO.h"
 #include "FreeImageIcs_MetaData.h"
@@ -251,13 +254,66 @@ TestFreeImageIcs_MetaDataAdd(CuTest* tc)
 
 }
 
+
+
+static void
+TestFreeImageAlgorithms_LinearScaleTest(CuTest* tc)
+{
+	double min_found, max_found;
+    ICS *ics;
+    int err;
+    FIBITMAP *dib;
+    FIBITMAP *scaled_dib;
+    FREE_IMAGE_TYPE type;
+
+	char *file = "C:\\Documents and Settings\\Pierce\\Desktop\\Working Area\\Test Images\\test_float.ics";
+
+	err = FreeImageIcs_IcsOpen (&ics, file, "r");
+
+    CuAssertTrue(tc, err == IcsErr_Ok);
+
+    dib = FreeImageIcs_LoadFIBFromIcsFile(ics);
+	
+    CuAssertTrue(tc, dib != NULL);
+
+    type = FreeImage_GetImageType(dib);
+
+    //FIBITMAP *dib = FreeImage_ConvertToType(old_dib, FIT_INT16, 1);
+
+    //
+
+    //PROFILE_START("LinearScale");
+
+	//for(int i=0; i < 1000; i++) {
+		
+    scaled_dib = FreeImageAlgorithms_LinearScaleToStandardType(dib, 0, 90, &min_found, &max_found);  
+
+    BasicWin32Window("Test", 100, 200, 400, 400, scaled_dib);
+       
+  //      if(i < 999)
+//		    FreeImage_Unload(scaled_dib);
+//	}
+
+    //PROFILE_STOP("LinearScale");
+
+
+    //FreeImageAlgorithms_SaveFIBToFile(scaled_dib, "C:\\Documents and Settings\\Pierce\\Desktop\\output.bmp", BIT8);
+
+    FreeImage_Unload(scaled_dib);
+	FreeImage_Unload(dib);
+
+}
+
+
 CuSuite*
 CuGetFreeImageIcsTestSuite(void)
 {
 	CuSuite* suite = CuSuiteNew();
 
-    SUITE_ADD_TEST(suite, TestFreeImageIcs_SumIntensityProjection);
-    SUITE_ADD_TEST(suite, TestFreeImageIcs_MaxIntensityProjection);
+    SUITE_ADD_TEST(suite, TestFreeImageAlgorithms_LinearScaleTest);
+
+    //SUITE_ADD_TEST(suite, TestFreeImageIcs_SumIntensityProjection);
+    //SUITE_ADD_TEST(suite, TestFreeImageIcs_MaxIntensityProjection);
 
 	//SUITE_ADD_TEST(suite, TestFreeImageIcs_MetaDataAdd);
 	//SUITE_ADD_TEST(suite, TestFreeImageIcs_ReadMultiDimensionalGreyScale);
