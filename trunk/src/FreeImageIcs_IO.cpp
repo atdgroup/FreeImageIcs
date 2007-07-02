@@ -7,6 +7,7 @@
 #include "FreeImageAlgorithms_Utilities.h"
 #include "FreeImageAlgorithms_Palettes.h"
 #include "FreeImageAlgorithms_Utils.h"
+#include "FreeImageAlgorithms_Arithmetic.h"
 
 #include "libics_ll.h"
 #include "libics.h"
@@ -380,6 +381,136 @@ FreeImageIcs_GetIcsImageDimensionalDataSlice(ICS *ics, int dimension, int slice)
 	return dib;
 }
 
+// This function get the sum intensity projection of each slice in the multidimensional image.
+// The dimension must be specified.
+// Each slice is made up off the first two dimensions.
+FIBITMAP* DLL_CALLCONV
+FreeImageIcs_SumIntensityProjection(ICS *ics, int dimension)
+{
+    Ics_DataType dataType;
+	int ndims;
+	size_t dims[ICS_MAXDIM];
+
+    if(dimension < 2)
+        return NULL;
+
+	memset(dims, 0, sizeof(size_t) * ICS_MAXDIM);
+
+	IcsGetLayout (ics, &dataType, &ndims, dims);
+
+	// Dimension must not be greater than the total dimensions
+	if(dimension > ndims)
+		return NULL;
+
+	int number_of_slices = (int) dims[dimension];
+	
+    int width = dims[0];
+    int height = dims[1];
+
+    // Create summed image
+    FIBITMAP *slice = FreeImageIcs_GetIcsImageDimensionalDataSlice(ics, dimension, 0);
+
+    if(slice == NULL)
+        return NULL;
+
+    FIBITMAP *sum = FreeImage_ConvertToType(slice, FIT_DOUBLE, 0);
+    
+    FreeImage_Unload(slice);
+
+    if(sum == NULL)
+        return NULL;
+    
+    if(number_of_slices < 2)
+        return sum;
+
+    FIBITMAP *tmp = NULL;
+
+    for(int i=1; i < number_of_slices; i++) {
+
+        // Get slice image
+        if((tmp = FreeImageIcs_GetIcsImageDimensionalDataSlice(ics, dimension, i)) == NULL)
+            goto Error;
+
+        if(FreeImageAlgorithms_AddGreyLevelImages(sum, tmp) == FREEIMAGE_ALGORITHMS_ERROR) {
+            FreeImage_Unload(tmp);
+            goto Error;
+        }
+
+        FreeImage_Unload(tmp);
+    }
+
+    return sum;
+
+    Error:
+    
+        FreeImage_Unload(sum);
+        return NULL;
+}
+
+FIBITMAP* DLL_CALLCONV
+FreeImageIcs_MaximumIntensityProjection(ICS *ics, int dimension)
+{
+    Ics_DataType dataType;
+	int ndims;
+	size_t dims[ICS_MAXDIM];
+
+    if(dimension < 2)
+        return NULL;
+
+	memset(dims, 0, sizeof(size_t) * ICS_MAXDIM);
+
+	IcsGetLayout (ics, &dataType, &ndims, dims);
+
+	// Dimension must not be greater than the total dimensions
+	if(dimension > ndims)
+		return NULL;
+
+	int number_of_slices = (int) dims[dimension];
+	
+    int width = dims[0];
+    int height = dims[1];
+
+    // Create summed image
+    FIBITMAP *slice = FreeImageIcs_GetIcsImageDimensionalDataSlice(ics, dimension, 0);
+    
+    if(slice == NULL)
+        return NULL;
+        
+    FIBITMAP *sum = FreeImage_ConvertToType(slice, FIT_DOUBLE, 0);
+    
+    FreeImage_Unload(slice);
+
+    if(sum == NULL)
+        return NULL;
+    
+    if(number_of_slices < 2)
+        return sum;
+
+    FIBITMAP *tmp = NULL;
+
+    for(int i=1; i < number_of_slices; i++) {
+
+        // Get slice image
+        if((tmp = FreeImageIcs_GetIcsImageDimensionalDataSlice(ics, dimension, i)) == NULL)
+            goto Error;
+
+        if(FreeImageAlgorithms_GetMaxIntensityFromImages(sum, tmp) == FREEIMAGE_ALGORITHMS_ERROR)             {
+            FreeImage_Unload(tmp);
+            goto Error;
+        }
+
+        FreeImage_Unload(tmp);
+    }
+
+    return sum;
+
+    Error:
+    
+        FreeImage_Unload(sum);
+        return NULL;
+}
+
+
 
 static FIBITMAP* DLL_CALLCONV
 LoadFIBFromColourIcsFile (ICS *ics, int width, int height)
@@ -562,7 +693,7 @@ FreeImage_GetBitsVerticalFlip(FIBITMAP *dib, BYTE *bytes)
 }
 
 int
-SaveGreyScaleImage (FIBITMAP *dib, const char *filepath)
+SaveGreyScaleImage (FIBITMAP *dib, const char *filepath, bool save_metadata)
 {
 	ICS* ics = NULL;
 	Ics_Error err;
@@ -591,9 +722,11 @@ SaveGreyScaleImage (FIBITMAP *dib, const char *filepath)
 
 	IcsSetOrder  (ics, 0, "x", "x-position");
 	IcsSetOrder  (ics, 1, "y", "y-position");
-    IcsDeleteHistory (ics, "labels");
-    IcsDeleteHistory (ics, "Labels");
-	IcsAddHistory  (ics, "labels", "x y");
+    //IcsDeleteHistory (ics, "labels");
+    //IcsDeleteHistory (ics, "Labels");
+	
+    if(save_metadata)
+        IcsAddHistory  (ics, "labels", "x y");
 
 	BYTE *bits = (BYTE*) malloc(bufsize);
 
@@ -628,7 +761,7 @@ SaveGreyScaleImage (FIBITMAP *dib, const char *filepath)
 
 
 static int
-SaveColourImage (FIBITMAP *dib, const char *filepath)
+SaveColourImage (FIBITMAP *dib, const char *filepath, bool save_metadata)
 {
 	ICS* ics;
 	Ics_Error err;
@@ -664,9 +797,11 @@ SaveColourImage (FIBITMAP *dib, const char *filepath)
 	IcsSetOrder  (ics, 0, "x", "x-position");
 	IcsSetOrder  (ics, 1, "y", "y-position");
 	IcsSetOrder	 (ics, 2, "c", "colour");
-    IcsDeleteHistory (ics, "labels");
-    IcsDeleteHistory (ics, "Labels");
-	IcsAddHistory  (ics, "labels", "x y c");
+    //IcsDeleteHistory (ics, "labels");
+    //IcsDeleteHistory (ics, "Labels");
+	
+    if(save_metadata)
+        IcsAddHistory  (ics, "labels", "x y c");
 
 	BYTE *bits = (BYTE*) malloc(bufsize);
 
@@ -695,12 +830,17 @@ SaveColourImage (FIBITMAP *dib, const char *filepath)
 
 
 int DLL_CALLCONV
-FreeImageIcs_SaveImage (FIBITMAP *dib, const char *filepath)
+FreeImageIcs_SaveImage (FIBITMAP *dib, const char *filepath, int save_metadata)
 {
+    int md_save = 0;
+
+    if(save_metadata)
+        md_save = 1;
+
 	if(FreeImageAlgorithms_IsGreyScale(dib))
-		return SaveGreyScaleImage (dib, filepath);
+		return SaveGreyScaleImage (dib, filepath, md_save);
 	else
-		return SaveColourImage (dib, filepath);
+		return SaveColourImage (dib, filepath, md_save);
 }
 
 Ics_Error DLL_CALLCONV

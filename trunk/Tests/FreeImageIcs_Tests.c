@@ -52,6 +52,59 @@ TestFreeImageIcs_SwapDimensionIcsTest(CuTest* tc)
 
 }
 
+
+
+static void
+TestFreeImageIcs_SumIntensityProjection(CuTest* tc)
+{
+	ICS *ics;
+	Ics_Error err;
+	FIBITMAP* fib;
+
+	char *file = "C:\\Documents and Settings\\Pierce\\Desktop\\SarSeven_txy.ics";
+  
+	err = FreeImageIcs_IcsOpen (&ics, file, "r");
+
+    CuAssertTrue(tc, err == IcsErr_Ok);
+	
+	fib = FreeImageIcs_SumIntensityProjection(ics, 2);
+
+    CuAssertTrue(tc, fib != NULL);
+
+	FreeImageAlgorithms_SaveFIBToFile (fib, "C:\\Documents and Settings\\Pierce\\Desktop\\sum_intensity_project.bmp", BIT8);
+
+	FreeImage_Unload(fib);
+	FreeImageIcs_IcsClose(ics);
+
+}
+
+
+static void
+TestFreeImageIcs_MaxIntensityProjection(CuTest* tc)
+{
+	ICS *ics;
+	Ics_Error err;
+	FIBITMAP* fib;
+
+	char *file = "C:\\Documents and Settings\\Pierce\\Desktop\\imageStack1.ics";
+  
+	err = FreeImageIcs_IcsOpen (&ics, file, "r");
+
+    CuAssertTrue(tc, err == IcsErr_Ok);
+	
+	fib = FreeImageIcs_MaximumIntensityProjection(ics, 2);
+
+    CuAssertTrue(tc, fib != NULL);
+
+	FreeImageAlgorithms_SaveFIBToFile (fib, "C:\\Documents and Settings\\Pierce\\Desktop\\max_intensity_project.bmp", BIT8);
+
+	FreeImage_Unload(fib);
+	FreeImageIcs_IcsClose(ics);
+
+}
+
+
+
 static void
 TestFreeImageIcs_ReadMultiDimensionalGreyScale(CuTest* tc)
 {
@@ -203,7 +256,10 @@ CuGetFreeImageIcsTestSuite(void)
 {
 	CuSuite* suite = CuSuiteNew();
 
-	SUITE_ADD_TEST(suite, TestFreeImageIcs_MetaDataAdd);
+    SUITE_ADD_TEST(suite, TestFreeImageIcs_SumIntensityProjection);
+    SUITE_ADD_TEST(suite, TestFreeImageIcs_MaxIntensityProjection);
+
+	//SUITE_ADD_TEST(suite, TestFreeImageIcs_MetaDataAdd);
 	//SUITE_ADD_TEST(suite, TestFreeImageIcs_ReadMultiDimensionalGreyScale);
 	//SUITE_ADD_TEST(suite, TestFreeImageIcs_ReadMultiDimensionalGreyScaleSlice);
 	//SUITE_ADD_TEST(suite, TestFreeImageIcs_ReadMultiDimensionalColour);

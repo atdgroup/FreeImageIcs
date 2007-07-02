@@ -34,7 +34,7 @@ DLL_API FIBITMAP* DLL_CALLCONV
 FreeImageIcs_GetIcsImageDimensionalDataSlice(ICS *ics, int dimension, int slice);
 
 DLL_API int DLL_CALLCONV
-FreeImageIcs_SaveImage (FIBITMAP *dib, const char *filepath);
+FreeImageIcs_SaveImage (FIBITMAP *dib, const char *filepath, int save_metadata);
 
 // Abstracts Ics files which have to be the __cdcel calling convention
 DLL_API Ics_Error DLL_CALLCONV
@@ -57,6 +57,12 @@ FreeImageIcs_SaveIcsFileWithDimensionsAs(ICS *ics, const char *filepath, size_t*
 
 DLL_API int DLL_CALLCONV
 FreeImageIcs_SaveIcsFileWithFirstTwoDimensionsAs(ICS *ics, const char *filepath, int first, int second);
+
+DLL_API FIBITMAP* DLL_CALLCONV
+FreeImageIcs_SumIntensityProjection(ICS *ics, int dimension);
+
+DLL_API FIBITMAP* DLL_CALLCONV
+FreeImageIcs_MaximumIntensityProjection(ICS *ics, int dimension);
 
 #ifdef __cplusplus
 }
