@@ -413,7 +413,7 @@ FreeImageIcs_SumIntensityProjection(ICS *ics, int dimension)
     if(slice == NULL)
         return NULL;
 
-    FIBITMAP *sum = FreeImage_ConvertToType(slice, FIT_DOUBLE, 0);
+    FIBITMAP *sum = FreeImage_ConvertToType(slice, FIT_FLOAT, 0);
     
     FreeImage_Unload(slice);
 
@@ -476,7 +476,7 @@ FreeImageIcs_MaximumIntensityProjection(ICS *ics, int dimension)
     if(slice == NULL)
         return NULL;
         
-    FIBITMAP *sum = FreeImage_ConvertToType(slice, FIT_DOUBLE, 0);
+    FIBITMAP *sum = FreeImage_ConvertToType(slice, FIT_FLOAT, 0);
     
     FreeImage_Unload(slice);
 
