@@ -28,3 +28,5 @@ EXPORTS
     IsIcsHistoryIteratorValid 
     FreeImageIcs_GetHistoryText
     FreeImageIcs_GetHistoryTextFromFile
+	FreeImageIcs_SumIntensityProjection
+	FreeImageIcs_MaximumIntensityProjection
