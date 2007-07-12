@@ -257,19 +257,19 @@ FreeImageIcs_SaveIcsFileWithDimensionsAs(ICS *ics, const char *filepath, size_t*
 
     char out[100];
 
-	if(SwitchDimensionLabels (new_ics, out, order) == FREEIMAGE_ALGORITHMS_ERROR)
-		goto Error;
+	if(SwitchDimensionLabels (new_ics, out, order) == FREEIMAGE_ALGORITHMS_SUCCESS)
+    {
+	    // Change Labels History
+        FreeImageIcs_ReplaceIcsHistoryValueForKey(new_ics, "Labels", out);
 
-	// Change Labels History
-    FreeImageIcs_ReplaceIcsHistoryValueForKey(new_ics, "Labels", out);
+        // Change the order
+	    char order_str[100], label_str[100];
 
-    // Change the order
-	char order_str[100], label_str[100];
-
-	for(i=0; i < ndims; i++) {
-		IcsGetOrder (ics, old_dims[i], order_str, label_str);
-		IcsSetOrder (new_ics, dims[i], order_str, label_str);
-	}
+	    for(i=0; i < ndims; i++) {
+		    IcsGetOrder (ics, old_dims[i], order_str, label_str);
+		    IcsSetOrder (new_ics, dims[i], order_str, label_str);
+	    }
+    }
 
 	// Get number of dimensions in old ics file
     if( IcsSetLayout(new_ics, dt, ndims, (size_t *) dims) != IcsErr_Ok)

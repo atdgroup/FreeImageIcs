@@ -16,25 +16,28 @@
 static void
 TestFreeImageIcs_SwapDimensionIcsTest(CuTest* tc)
 {
-	ICS *ics, *new_ics;
-	Ics_Error err;
+	ICS *ics = NULL, *new_ics;
+	int err;
 	FIBITMAP* fib;
 	int order[3] = {1, 2, 0};
 
     //char *file = "C:\\Documents and Settings\\Pierce\\Desktop\\testy.ics";
     //char *out_file = "C:\\Documents and Settings\\Pierce\\Desktop\\testy_swapped.ics";
 
-	char *file = "C:\\Documents and Settings\\Pierce\\Desktop\\SarSeven_txy.ics";
-    char *out_file = "C:\\Documents and Settings\\Pierce\\Desktop\\SarSeven_txy-done.ics";
+	char *file = "P:\\GROUP9_Adv Tech\\Glenn\\ics_swapped.ics";
+    char *out_file = "C:\\Documents and Settings\\Pierce\\Desktop\\test.ics";
 
 
 	err = FreeImageIcs_IcsOpen (&ics, file, "r");
 
-    CuAssertTrue(tc, err == IcsErr_Ok);
+    //CuAssertTrue(tc, err == FREEIMAGE_ALGORITHMS_SUCCESS);
+    CuAssertTrue(tc, ics != NULL);
 	
 	
-	FreeImageIcs_SaveIcsFileWithFirstTwoDimensionsAs(ics, out_file, 2, 0);
+	err = FreeImageIcs_SaveIcsFileWithFirstTwoDimensionsAs(ics, out_file, 0, 1);
 	
+    CuAssertTrue(tc, err == FREEIMAGE_ALGORITHMS_SUCCESS);
+
 	/*
     FreeImageIcs_SaveIcsFileWithDimensionsAs(ics, out_file, order, 3);
 
@@ -310,7 +313,7 @@ CuGetFreeImageIcsTestSuite(void)
 {
 	CuSuite* suite = CuSuiteNew();
 
-    SUITE_ADD_TEST(suite, TestFreeImageAlgorithms_LinearScaleTest);
+    //SUITE_ADD_TEST(suite, TestFreeImageAlgorithms_LinearScaleTest);
 
     //SUITE_ADD_TEST(suite, TestFreeImageIcs_SumIntensityProjection);
     //SUITE_ADD_TEST(suite, TestFreeImageIcs_MaxIntensityProjection);
@@ -321,7 +324,7 @@ CuGetFreeImageIcsTestSuite(void)
 	//SUITE_ADD_TEST(suite, TestFreeImageIcs_ReadMultiDimensionalColour);
 	//SUITE_ADD_TEST(suite, TestFreeImageIcs_GetDimensionalDetailTest);
 	//SUITE_ADD_TEST(suite, TestFreeImageIcs_LoadTest);
-    //SUITE_ADD_TEST(suite, TestFreeImageIcs_SwapDimensionIcsTest);
+    SUITE_ADD_TEST(suite, TestFreeImageIcs_SwapDimensionIcsTest);
 
 	return suite;
 }
