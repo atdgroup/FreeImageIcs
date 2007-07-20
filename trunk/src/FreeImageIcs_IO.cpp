@@ -843,6 +843,37 @@ FreeImageIcs_SaveImage (FIBITMAP *dib, const char *filepath, int save_metadata)
 		return SaveColourImage (dib, filepath, md_save);
 }
 
+
+int DLL_CALLCONV
+FreeImageIcs_SaveIcsDataToFile (const char *filepath, void *data, Ics_DataType dt, int ndims, int *dims)
+{
+	ICS* ics;
+	Ics_Error err;
+	int bufsize = 1;
+	
+	err = IcsOpen (&ics, filepath, "w2");
+
+	if (err != IcsErr_Ok)
+   		return FREEIMAGE_ALGORITHMS_ERROR;
+
+	for(int i=0; i < ndims; i++)
+		bufsize *= dims[i];
+
+	if( IcsSetLayout(ics, dt, ndims, (size_t *) dims) != IcsErr_Ok)
+		return FREEIMAGE_ALGORITHMS_ERROR;
+
+	if( (err = IcsSetData(ics, data, bufsize)) != IcsErr_Ok)
+		return FREEIMAGE_ALGORITHMS_ERROR;
+		
+	if( IcsSetCompression (ics, IcsCompr_gzip, 0) != IcsErr_Ok)
+		return FREEIMAGE_ALGORITHMS_ERROR;
+	
+	if( IcsClose (ics) != IcsErr_Ok)
+		return FREEIMAGE_ALGORITHMS_ERROR;
+
+	return FREEIMAGE_ALGORITHMS_SUCCESS;
+}
+
 Ics_Error DLL_CALLCONV
 FreeImageIcs_IcsOpen (ICS* *ics, char const* filename, char const* mode)
 {
