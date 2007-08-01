@@ -381,6 +381,7 @@ FreeImageIcs_GetIcsImageDimensionalDataSlice(ICS *ics, int dimension, int slice)
 	return dib;
 }
 
+
 // This function get the sum intensity projection of each slice in the multidimensional image.
 // The dimension must be specified.
 // Each slice is made up off the first two dimensions.
@@ -853,23 +854,36 @@ FreeImageIcs_SaveIcsDataToFile (const char *filepath, void *data, Ics_DataType d
 	
 	err = IcsOpen (&ics, filepath, "w2");
 
-	if (err != IcsErr_Ok)
+    if (err != IcsErr_Ok) {
+        FreeImageAlgorithms_SendOutputMessage("Error opening filepath %s", filepath);
    		return FREEIMAGE_ALGORITHMS_ERROR;
+    }
 
 	for(int i=0; i < ndims; i++)
 		bufsize *= dims[i];
 
-	if( IcsSetLayout(ics, dt, ndims, (size_t *) dims) != IcsErr_Ok)
-		return FREEIMAGE_ALGORITHMS_ERROR;
+    int bytes_per_pixel = GetIcsDataTypeBPP (dt) / 8;
+    bufsize *= bytes_per_pixel;
 
-	if( (err = IcsSetData(ics, data, bufsize)) != IcsErr_Ok)
+    if( IcsSetLayout(ics, dt, ndims, (size_t *) dims) != IcsErr_Ok) {
+        FreeImageAlgorithms_SendOutputMessage("Error calling IcsSetLayout");
 		return FREEIMAGE_ALGORITHMS_ERROR;
+    }
+
+    if( (err = IcsSetData(ics, data, bufsize)) != IcsErr_Ok) {
+        FreeImageAlgorithms_SendOutputMessage("Error calling IcsSetData buffer size %d bytes per pixel %d", bufsize, bytes_per_pixel);
+		return FREEIMAGE_ALGORITHMS_ERROR;
+    }
 		
-	if( IcsSetCompression (ics, IcsCompr_gzip, 0) != IcsErr_Ok)
+    if( IcsSetCompression (ics, IcsCompr_gzip, 0) != IcsErr_Ok) {
+        FreeImageAlgorithms_SendOutputMessage("Error calling IcsSetCompression");
 		return FREEIMAGE_ALGORITHMS_ERROR;
+    }
 	
-	if( IcsClose (ics) != IcsErr_Ok)
+    if( IcsClose (ics) != IcsErr_Ok) {
+        FreeImageAlgorithms_SendOutputMessage("Error calling IcsClose");
 		return FREEIMAGE_ALGORITHMS_ERROR;
+    }
 
 	return FREEIMAGE_ALGORITHMS_SUCCESS;
 }
