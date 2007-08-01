@@ -16,6 +16,7 @@ EXPORTS
     FreeImageIcs_IcsGetHistoryStringI 
     FreeImageIcs_SaveIcsFileWithDimensionsAs
     FreeImageIcs_SaveIcsFileWithFirstTwoDimensionsAs
+    FreeImageIcs_SaveIcsDataToFile
     FreeImageIcs_GetIcsHistoryStringCount
     FreeImageIcs_SplitHistoryString
     FreeImageIcs_JoinKeyValueIntoHistoryString
