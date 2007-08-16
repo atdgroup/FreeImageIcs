@@ -618,7 +618,8 @@ FreeImageIcs_LoadFIBFromIcsFile (ICS *ics)
 	int ndims, channels = 1;
 	int dims[ICS_MAXDIM];
 
-	IcsGetLayout (ics, &dt, &ndims, (size_t *) dims);
+	if(IcsGetLayout (ics, &dt, &ndims, (size_t *) dims) != IcsErr_Ok)
+        return NULL;
 
 	if(FreeImageIcs_IsIcsFileColourFile(ics))
 		dib = LoadFIBFromColourIcsFile (ics, dims[0], dims[1]);
@@ -634,7 +635,8 @@ FreeImageIcs_LoadFIBFromIcsFilePath (const char* filepath)
 {
 	ICS *ics;
 
-	IcsOpen(&ics, filepath, "r");
+	if(IcsOpen(&ics, filepath, "r") != IcsErr_Ok)
+        return NULL;
 
 	FIBITMAP *fib = FreeImageIcs_LoadFIBFromIcsFile (ics);
 
