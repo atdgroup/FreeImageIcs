@@ -13,6 +13,21 @@
 #define TEST_IMAGE_DIR "C:\\Documents and Settings\\Pierce\\Desktop\\Working Area\\Test Images\\"
 
 
+
+static void
+TestFreeImageIcs_SaveIcsTest(CuTest* tc)
+{
+	ICS *ics = NULL, *new_ics;
+	int err;
+	FIBITMAP* fib;
+
+    char *out_file = "C:\\Documents and Settings\\Pierce\\Desktop\\test.ics";
+
+    fib = FreeImage_AllocateT(FIT_FLOAT, 800, 600, 32, 0, 0, 0);
+
+    FreeImageIcs_SaveImage (fib, out_file, 1);  
+}
+
 static void
 TestFreeImageIcs_SwapDimensionIcsTest(CuTest* tc)
 {
@@ -324,7 +339,9 @@ CuGetFreeImageIcsTestSuite(void)
 	//SUITE_ADD_TEST(suite, TestFreeImageIcs_ReadMultiDimensionalColour);
 	//SUITE_ADD_TEST(suite, TestFreeImageIcs_GetDimensionalDetailTest);
 	//SUITE_ADD_TEST(suite, TestFreeImageIcs_LoadTest);
-    SUITE_ADD_TEST(suite, TestFreeImageIcs_SwapDimensionIcsTest);
+    //SUITE_ADD_TEST(suite, TestFreeImageIcs_SwapDimensionIcsTest);
+
+    SUITE_ADD_TEST(suite, TestFreeImageIcs_SaveIcsTest);
 
 	return suite;
 }
