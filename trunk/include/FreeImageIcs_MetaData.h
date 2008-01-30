@@ -23,6 +23,12 @@ DLL_API int DLL_CALLCONV
 FreeImageIcs_JoinKeyValueIntoHistoryString(char *history_string, char *key, char *value);
 
 /*
+Delete all history in a file.
+*/
+DLL_API int DLL_CALLCONV
+FreeImageIcs_IcsDeleteHistory(ICS *ics);
+
+/*
 Sets all the history string in one go.
 The var argument must end in NULL.
 Old history strings are removed.

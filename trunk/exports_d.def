@@ -11,6 +11,7 @@ EXPORTS
     FreeImageIcs_SaveImage
     FreeImageIcs_IcsOpen 
     FreeImageIcs_IcsClose 
+    FreeImageIcs_IcsDeleteHistory
     FreeImageIcs_IcsAddHistoryString 
     FreeImageIcs_IcsNewHistoryIterator 
     FreeImageIcs_IcsGetHistoryStringI 

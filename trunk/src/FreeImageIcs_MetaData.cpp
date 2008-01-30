@@ -131,6 +131,12 @@ FreeImageIcs_ReplaceIcsHistoryValueForKey(ICS *ics, const char *key, const char 
 	return FREEIMAGE_ALGORITHMS_SUCCESS;
 }
 
+int DLL_CALLCONV
+FreeImageIcs_IcsDeleteHistory(ICS *ics)
+{
+	IcsDeleteHistory (ics, NULL);
+    return FREEIMAGE_ALGORITHMS_SUCCESS; 
+}
 
 int DLL_CALLCONV
 FreeImageIcs_SetIcsHistoryKeyValueStrings(ICS *ics, ...)
