@@ -25,7 +25,7 @@ TestFreeImageIcs_SaveIcsTest(CuTest* tc)
 
     fib = FreeImage_AllocateT(FIT_FLOAT, 800, 600, 32, 0, 0, 0);
 
-    FreeImageIcs_SaveImage (fib, out_file, 1);  
+FreeImageIcs_SaveImage (fib, out_file, 1);  
 }
 
 static void

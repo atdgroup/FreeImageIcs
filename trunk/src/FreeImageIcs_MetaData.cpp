@@ -114,7 +114,7 @@ FreeImageIcs_GetFirstIcsHistoryValueWithKey(ICS *ics, char *key, char *value)
 
 
 int DLL_CALLCONV
-FreeImageIcs_ReplaceIcsHistoryValueForKey(ICS *ics, char *key, char *value)
+FreeImageIcs_ReplaceIcsHistoryValueForKey(ICS *ics, const char *key, const char *value)
 {
 	Ics_HistoryIterator it;     
     char temp[ICS_LINE_LENGTH];

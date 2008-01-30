@@ -56,7 +56,7 @@ FreeImageIcs_SetIcsHistoryKeyValueStringsFromArray(ICS *ics, char **history_stri
 Replace history string stored in an array.
 */
 DLL_API int DLL_CALLCONV
-FreeImageIcs_ReplaceIcsHistoryValueForKey(ICS *ics, char *key, char *value);
+FreeImageIcs_ReplaceIcsHistoryValueForKey(ICS *ics, const char *key, const char *value);
 
 
 /*
