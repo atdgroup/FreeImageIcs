@@ -195,6 +195,10 @@ Ics_Error IcsClose (ICS* ics)
          remove (ics->Filename);
          rename (filename, ics->Filename);
       }
+
+      if (ics->BlockRead != NULL) {
+         error = IcsCloseIds (ics);
+      }
    }
    IcsFreeHistory (ics);
    free (ics);
@@ -305,10 +309,12 @@ Ics_Error IcsGetData (ICS* ics, void* dest, size_t n)
 Ics_Error IcsGetDataBlock (ICS* ics, void* dest, size_t n)
 {
    ICSINIT;
-
+   
    ICS_FM_RD( ics );
    if ((n != 0) && (dest != NULL)) {
+
       if (ics->BlockRead == NULL) {
+
          error = IcsOpenIds (ics);
       }
       ICSCX( IcsReadIdsBlock (ics, dest, n) );

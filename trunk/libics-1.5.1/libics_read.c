@@ -567,6 +567,7 @@ Ics_Error IcsReadIcs (Ics_Header* IcsStruct, char const* filename, int forcename
    if (fclose (fp) == EOF) {
       ICSCX (IcsErr_FCloseIcs); /* Don't overwrite any previous error. */
    }
+
    return error;
 }
 

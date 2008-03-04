@@ -261,23 +261,23 @@ FreeImageIcs_SaveIcsFileWithDimensionsAs(ICS *ics, const char *filepath, size_t*
     {
 	    // Change Labels History
         FreeImageIcs_ReplaceIcsHistoryValueForKey(new_ics, "Labels", out);
-
-        // Change the order
-	    char order_str[100], label_str[100];
-
-	    for(i=0; i < ndims; i++) {
-		    IcsGetOrder (ics, old_dims[i], order_str, label_str);
-		    IcsSetOrder (new_ics, dims[i], order_str, label_str);
-	    }
     }
 
-	// Get number of dimensions in old ics file
+    // Get number of dimensions in old ics file
     if( IcsSetLayout(new_ics, dt, ndims, (size_t *) dims) != IcsErr_Ok)
 		goto Error;
 
     if( (err = IcsSetData(new_ics, bits, bufsize)) != IcsErr_Ok)
 		goto Error;
 
+    // Change the order
+	char order_str[100], label_str[100];
+
+	for(int i=0; i < ndims; i++) {
+        IcsGetOrder (ics, order[i], order_str, label_str);
+	    IcsSetOrder (new_ics, i, order_str, label_str);
+	}
+   
     if( (err = IcsSetCompression (new_ics, IcsCompr_gzip, 0)) != IcsErr_Ok)
 	    goto Error;
 
@@ -358,10 +358,15 @@ FreeImageIcs_GetIcsImageDimensionalDataSlice(ICS *ics, int dimension, int slice)
 
 	size_t bufsize;
 
+
+
 	GetSizeInBytesBetweenDimensions(dims, ndims, dataType, dimension, &bufsize);
 		
+
 	if(IcsSkipDataBlock  (ics, bufsize * slice) != IcsErr_Ok)
 		return NULL;
+
+
 
 	BYTE *buf = (BYTE *) malloc (bufsize);
 
@@ -595,16 +600,17 @@ FreeImageIcs_GetDimensionDetails (ICS *ics, int dimension, char* order, char *la
 	int ndims, channels = 1;
 	int dims[ICS_MAXDIM];
 	
-	IcsGetLayout (ics, &dt, &ndims, (size_t *) dims);
-
-	IcsGetOrder  (ics, dimension, order, label);
+    IcsGetLayout (ics, &dt, &ndims, (size_t *) dims);
+    *size = dims[dimension];
 
     // If we have labels history then used those instead of order
     // Someone added Labels to history and we are now stuck with 
     // it for backward compatibility.
-	FreeImageIcs_GetLabelForDimension (ics, dimension, label);
-
-	*size = dims[dimension];
+	if(FreeImageIcs_GetLabelForDimension (ics, dimension, label) == FREEIMAGE_ALGORITHMS_SUCCESS)
+        return FREEIMAGE_ALGORITHMS_SUCCESS;
+	
+    // Hmm no labels ? Use the order specified in all ics files.
+	IcsGetOrder  (ics, dimension, order, label);
 
 	return FREEIMAGE_ALGORITHMS_SUCCESS;
 }
@@ -621,11 +627,11 @@ FreeImageIcs_LoadFIBFromIcsFile (ICS *ics)
 	if(IcsGetLayout (ics, &dt, &ndims, (size_t *) dims) != IcsErr_Ok)
         return NULL;
 
-	if(FreeImageIcs_IsIcsFileColourFile(ics))
+    if(FreeImageIcs_IsIcsFileColourFile(ics))
 		dib = LoadFIBFromColourIcsFile (ics, dims[0], dims[1]);
-	else
+    else
 		dib = FreeImageIcs_GetIcsImageDimensionalDataSlice(ics, 2, 0);
-	
+
 	return dib;
 }
 
@@ -800,8 +806,6 @@ SaveColourImage (FIBITMAP *dib, const char *filepath, bool save_metadata)
 	IcsSetOrder  (ics, 0, "x", "x-position");
 	IcsSetOrder  (ics, 1, "y", "y-position");
 	IcsSetOrder	 (ics, 2, "c", "colour");
-    //IcsDeleteHistory (ics, "labels");
-    //IcsDeleteHistory (ics, "Labels");
 	
     if(save_metadata)
         IcsAddHistory  (ics, "labels", "x y c");
