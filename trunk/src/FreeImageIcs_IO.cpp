@@ -739,6 +739,9 @@ SaveGreyScaleImage (FIBITMAP *dib, const char *filepath, bool save_metadata)
 
 	BYTE *bits = (BYTE*) malloc(bufsize);
 
+    if(bits == NULL)
+        goto Error;
+
 	FreeImage_GetBitsVerticalFlip(dib, bits);
 
 	if( IcsSetLayout(ics, dt, ndims, (size_t *) dims) != IcsErr_Ok)
