@@ -1,5 +1,5 @@
-#ifndef __FREEIMAGE_ALGORITHMS_PRIVATE__
-#define __FREEIMAGE_ALGORITHMS_PRIVATE__
+#ifndef __FIA_PRIVATE__
+#define __FIA_PRIVATE__
 
 #include "FreeImageIcs_IO.h"
 

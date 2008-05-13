@@ -1,5 +1,5 @@
-#ifndef __FREEIMAGE_ALGORITHMS_ICS__
-#define __FREEIMAGE_ALGORITHMS_ICS__
+#ifndef __FIA_ICS__
+#define __FIA_ICS__
 
 #ifdef __cplusplus
 extern "C" {

@@ -2,6 +2,8 @@
 #include "FreeImageIcs_Private.h"
 #include "FreeImageIcs_IO.h"
 
+#include "FreeImageAlgorithms.h"
+
 #include "libics.h"
 
 #include <iostream>
@@ -28,8 +30,8 @@ FreeImageIcs_GetLabelForDimension (ICS *ics, int dimension, char *label)
 
     int no_of_dimensions = FreeImageIcs_NumberOfDimensions (ics);
 
-	if(FreeImageIcs_GetFirstIcsHistoryValueWithKey(ics, "Labels", labels) == FREEIMAGE_ALGORITHMS_ERROR)
-        return FREEIMAGE_ALGORITHMS_ERROR;
+	if(FreeImageIcs_GetFirstIcsHistoryValueWithKey(ics, "Labels", labels) == FIA_ERROR)
+        return FIA_ERROR;
 
 	char *result = strtok(labels, " ");
 
@@ -38,15 +40,15 @@ FreeImageIcs_GetLabelForDimension (ICS *ics, int dimension, char *label)
 
 	for(int i = 1; i <= dimension; i++) {
 		if((result = strtok(NULL, " ")) == NULL)
-			return FREEIMAGE_ALGORITHMS_ERROR;
+			return FIA_ERROR;
 	}
 
 	if(result != NULL)
 		strcpy(label, result);
 	else
-		return FREEIMAGE_ALGORITHMS_ERROR;
+		return FIA_ERROR;
 
-	return FREEIMAGE_ALGORITHMS_SUCCESS;
+	return FIA_SUCCESS;
 }
 
 
@@ -72,14 +74,14 @@ FreeImageIcs_SplitHistoryString(char *history_string, char *key, char *value)
 	char *s;
 
 	if((s = strchr (history_string, 0x09)) == NULL) // Finds the splitting character
-		return FREEIMAGE_ALGORITHMS_ERROR;
+		return FIA_ERROR;
 	
 	strncpy (key, history_string, (s - history_string)); // Copy the key
 	key[(s - history_string)] = '\0'; // Add NULL char
 	
 	strcpy(value, (s+1));  // copy the value
 
-	return FREEIMAGE_ALGORITHMS_SUCCESS;
+	return FIA_SUCCESS;
 }
 
 
@@ -94,7 +96,7 @@ FreeImageIcs_JoinKeyValueIntoHistoryString(char *history_string, char *key, char
 	history_string[length + 1] = '\0';
 	strcat(history_string, value);
 
-	return FREEIMAGE_ALGORITHMS_SUCCESS;
+	return FIA_SUCCESS;
 }
 
 
@@ -105,12 +107,12 @@ FreeImageIcs_GetFirstIcsHistoryValueWithKey(ICS *ics, char *key, char *value)
     Ics_Error err;
 
 	if((err = IcsNewHistoryIterator (ics, &it, key)) != IcsErr_Ok)
-		return FREEIMAGE_ALGORITHMS_ERROR;	
+		return FIA_ERROR;	
 
 	if(IcsGetHistoryKeyValueI (ics, &it, NULL, value) != IcsErr_Ok)
-		return FREEIMAGE_ALGORITHMS_ERROR;	
+		return FIA_ERROR;	
 
-	return FREEIMAGE_ALGORITHMS_SUCCESS;
+	return FIA_SUCCESS;
 }
 
 
@@ -121,22 +123,22 @@ FreeImageIcs_ReplaceIcsHistoryValueForKey(ICS *ics, const char *key, const char 
     char temp[ICS_LINE_LENGTH];
 
 	if(IcsNewHistoryIterator (ics, &it, key) != IcsErr_Ok)
-		return FREEIMAGE_ALGORITHMS_ERROR;	
+		return FIA_ERROR;	
    
 	if(IcsGetHistoryKeyValueI (ics, &it, NULL, temp) != IcsErr_Ok)
-		return FREEIMAGE_ALGORITHMS_ERROR;
+		return FIA_ERROR;
 
     if(IcsReplaceHistoryStringI (ics, &it, key, value) != IcsErr_Ok)
-		return FREEIMAGE_ALGORITHMS_ERROR;	
+		return FIA_ERROR;	
 
-	return FREEIMAGE_ALGORITHMS_SUCCESS;
+	return FIA_SUCCESS;
 }
 
 int DLL_CALLCONV
 FreeImageIcs_IcsDeleteHistory(ICS *ics)
 {
 	IcsDeleteHistory (ics, NULL);
-    return FREEIMAGE_ALGORITHMS_SUCCESS; 
+    return FIA_SUCCESS; 
 }
 
 int DLL_CALLCONV
@@ -157,7 +159,7 @@ FreeImageIcs_SetIcsHistoryKeyValueStrings(ICS *ics, ...)
 			
 	va_end(ap);
 
-	return FREEIMAGE_ALGORITHMS_SUCCESS; 
+	return FIA_SUCCESS; 
 }
 
 
@@ -176,7 +178,7 @@ FreeImageIcs_SetIcsHistoryStrings(ICS *ics, ...)
 			
 	va_end(ap);
 
-	return FREEIMAGE_ALGORITHMS_SUCCESS; 
+	return FIA_SUCCESS; 
 }
 
 
@@ -188,7 +190,7 @@ FreeImageIcs_SetIcsHistoryKeyValueStringsFromArray(ICS *ics, char **history_stri
 	for(int i=0; i < number_of_items; i++)
 		IcsAddHistory (ics, NULL, history_strings[i]);	
 
-	return FREEIMAGE_ALGORITHMS_SUCCESS; 
+	return FIA_SUCCESS; 
 }
 
 
@@ -210,7 +212,7 @@ FreeImageIcs_AddIcsHistoryKeyValueStrings(ICS *ics, ...)
 			
 	va_end(ap);
 
-	return FREEIMAGE_ALGORITHMS_SUCCESS;  
+	return FIA_SUCCESS;  
 }
 
 
@@ -229,10 +231,10 @@ FreeImageIcs_GetHistoryText(ICS *ics, char *text)
 	memset(text, 0, 1);
 
 	if(FreeImageIcs_GetIcsHistoryStringCount(ics) <= 0)
-		return FREEIMAGE_ALGORITHMS_ERROR;	
+		return FIA_ERROR;	
 
 	if(IcsNewHistoryIterator (ics, &it, NULL) != IcsErr_Ok)
-		return FREEIMAGE_ALGORITHMS_ERROR;	
+		return FIA_ERROR;	
 
 	while (it.next >= 0) { 
 	   
@@ -253,7 +255,7 @@ FreeImageIcs_GetHistoryText(ICS *ics, char *text)
 
 	strcat(text, "\0");
 
-	return FREEIMAGE_ALGORITHMS_SUCCESS;
+	return FIA_SUCCESS;
 }
 
 
@@ -267,7 +269,7 @@ FreeImageIcs_GetHistoryTextFromFile(const char *filepath, char *text)
 	memset(text, 0, 1);
 
 	if(!FreeImageIcs_IsIcsFile (filepath))
-		return FREEIMAGE_ALGORITHMS_ERROR;	
+		return FIA_ERROR;	
 
 	IcsOpen(&ics, filepath, "r");
 
@@ -286,10 +288,10 @@ FreeImageIcs_CopyHistoryText(ICS *ics, ICS *dst_ics)
 	char buffer[ICS_LINE_LENGTH];
 
 	if(FreeImageIcs_GetIcsHistoryStringCount(ics) <= 0)
-		return FREEIMAGE_ALGORITHMS_ERROR;	
+		return FIA_ERROR;	
 
 	if(IcsNewHistoryIterator (ics, &it, NULL) != IcsErr_Ok)
-		return FREEIMAGE_ALGORITHMS_ERROR;	
+		return FIA_ERROR;	
 
 	while (it.next >= 0) { 
 	  
@@ -299,5 +301,5 @@ FreeImageIcs_CopyHistoryText(ICS *ics, ICS *dst_ics)
 		IcsAddHistoryString (dst_ics, NULL, buffer);
 	}	
 
-	return FREEIMAGE_ALGORITHMS_SUCCESS;
+	return FIA_SUCCESS;
 }

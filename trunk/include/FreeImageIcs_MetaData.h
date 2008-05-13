@@ -1,5 +1,5 @@
-#ifndef __FREEIMAGE_ALGORITHMS_METADATA__
-#define __FREEIMAGE_ALGORITHMS_METADATA__
+#ifndef __FIA_METADATA__
+#define __FIA_METADATA__
 
 #ifdef __cplusplus
 extern "C" {

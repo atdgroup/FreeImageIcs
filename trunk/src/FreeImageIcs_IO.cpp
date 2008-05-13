@@ -2,7 +2,6 @@
 #include "FreeImageIcs_Private.h"
 #include "FreeImageIcs_MetaData.h"
 
-#include "FreeImageAlgorithms_Error.h"
 #include "FreeImageAlgorithms_IO.h"
 #include "FreeImageAlgorithms_Utilities.h"
 #include "FreeImageAlgorithms_Palettes.h"
@@ -99,7 +98,7 @@ FreeImageIcs_CreateFIB(BYTE *data, Ics_DataType icsType, int bpp, int width, int
 	dib = FreeImage_AllocateT(fit, width, height, bpp, 0, 0, 0);
 
 	if(bpp == 8)
-		FreeImageAlgorithms_SetGreyLevelPalette(dib);
+		FIA_SetGreyLevelPalette(dib);
 
 	CopyBytesToFIBitmap(dib, data, padded);
 
@@ -159,8 +158,8 @@ SwitchDimensionLabels (ICS *ics, char*out, size_t* order)
 {
 	char labels[ICS_LINE_LENGTH];
  
-	if(FreeImageIcs_GetFirstIcsHistoryValueWithKey(ics, "Labels", labels) == FREEIMAGE_ALGORITHMS_ERROR)
-        return FREEIMAGE_ALGORITHMS_ERROR;
+	if(FreeImageIcs_GetFirstIcsHistoryValueWithKey(ics, "Labels", labels) == FIA_ERROR)
+        return FIA_ERROR;
 
 	std::string labels_str = std::string(labels);
 	trim(labels_str);
@@ -179,7 +178,7 @@ SwitchDimensionLabels (ICS *ics, char*out, size_t* order)
 
     strcpy(out, output.c_str());
 
-	return FREEIMAGE_ALGORITHMS_SUCCESS;
+	return FIA_SUCCESS;
 }
 
 // Returns strides for ics file.
@@ -257,7 +256,7 @@ FreeImageIcs_SaveIcsFileWithDimensionsAs(ICS *ics, const char *filepath, size_t*
 
     char out[100];
 
-	if(SwitchDimensionLabels (new_ics, out, order) == FREEIMAGE_ALGORITHMS_SUCCESS)
+	if(SwitchDimensionLabels (new_ics, out, order) == FIA_SUCCESS)
     {
 	    // Change Labels History
         FreeImageIcs_ReplaceIcsHistoryValueForKey(new_ics, "Labels", out);
@@ -286,14 +285,14 @@ FreeImageIcs_SaveIcsFileWithDimensionsAs(ICS *ics, const char *filepath, size_t*
 
 	free(bits);
 
-	return FREEIMAGE_ALGORITHMS_SUCCESS;
+	return FIA_SUCCESS;
 
 	Error:
 
 	if(bits)
 		free(bits);
 
-	return FREEIMAGE_ALGORITHMS_ERROR;
+	return FIA_ERROR;
 }
 
 
@@ -307,7 +306,7 @@ FreeImageIcs_SaveIcsFileWithFirstTwoDimensionsAs(ICS *ics, const char *filepath,
 
     // Get number of dimensions in old ics file
     if((err = IcsGetLayout(ics, &dt, &ndims, dims)) != IcsErr_Ok)
-   		return FREEIMAGE_ALGORITHMS_ERROR;
+   		return FIA_ERROR;
 
     dims[0] = first; 
 	dims[1] = second; 
@@ -437,7 +436,7 @@ FreeImageIcs_SumIntensityProjection(ICS *ics, int dimension)
         if((tmp = FreeImageIcs_GetIcsImageDimensionalDataSlice(ics, dimension, i)) == NULL)
             goto Error;
 
-        if(FreeImageAlgorithms_AddGreyLevelImages(sum, tmp) == FREEIMAGE_ALGORITHMS_ERROR) {
+        if(FIA_AddGreyLevelImages(sum, tmp) == FIA_ERROR) {
             FreeImage_Unload(tmp);
             goto Error;
         }
@@ -500,7 +499,7 @@ FreeImageIcs_MaximumIntensityProjection(ICS *ics, int dimension)
         if((tmp = FreeImageIcs_GetIcsImageDimensionalDataSlice(ics, dimension, i)) == NULL)
             goto Error;
 
-        if(FreeImageAlgorithms_GetMaxIntensityFromImages(sum, tmp) == FREEIMAGE_ALGORITHMS_ERROR)             {
+        if(FIA_GetMaxIntensityFromImages(sum, tmp) == FIA_ERROR)             {
             FreeImage_Unload(tmp);
             goto Error;
         }
@@ -557,7 +556,7 @@ FreeImageIcs_IsIcsFileColourFile(ICS *ics)
 	// They have left it as z. However, they have added some history with key labels 
 	// that does the same thing.
 	
-	if(FreeImageIcs_GetFirstIcsHistoryValueWithKey(ics, "labels", label) != FREEIMAGE_ALGORITHMS_SUCCESS)
+	if(FreeImageIcs_GetFirstIcsHistoryValueWithKey(ics, "labels", label) != FIA_SUCCESS)
 		return 0;
 
 	if(strcmp(label, "x y c") == 0)
@@ -606,13 +605,13 @@ FreeImageIcs_GetDimensionDetails (ICS *ics, int dimension, char* order, char *la
     // If we have labels history then used those instead of order
     // Someone added Labels to history and we are now stuck with 
     // it for backward compatibility.
-	if(FreeImageIcs_GetLabelForDimension (ics, dimension, label) == FREEIMAGE_ALGORITHMS_SUCCESS)
-        return FREEIMAGE_ALGORITHMS_SUCCESS;
+	if(FreeImageIcs_GetLabelForDimension (ics, dimension, label) == FIA_SUCCESS)
+        return FIA_SUCCESS;
 	
     // Hmm no labels ? Use the order specified in all ics files.
 	IcsGetOrder  (ics, dimension, order, label);
 
-	return FREEIMAGE_ALGORITHMS_SUCCESS;
+	return FIA_SUCCESS;
 }
 
 
@@ -712,12 +711,12 @@ SaveGreyScaleImage (FIBITMAP *dib, const char *filepath, bool save_metadata)
 	int bytes_per_pixel;
 
 	if(dib == NULL)
-		return FREEIMAGE_ALGORITHMS_ERROR;
+		return FIA_ERROR;
 
 	err = IcsOpen (&ics, filepath, "w2");
 
 	if (err != IcsErr_Ok)
-   		return FREEIMAGE_ALGORITHMS_ERROR;
+   		return FIA_ERROR;
 
 	bytes_per_pixel = FreeImage_GetBPP(dib) / 8;
 
@@ -758,7 +757,7 @@ SaveGreyScaleImage (FIBITMAP *dib, const char *filepath, bool save_metadata)
 
 	free(bits);
 
-	return FREEIMAGE_ALGORITHMS_SUCCESS;
+	return FIA_SUCCESS;
 
 	Error:
 
@@ -768,7 +767,7 @@ SaveGreyScaleImage (FIBITMAP *dib, const char *filepath, bool save_metadata)
     if(ics != NULL)
         IcsClose (ics);
 
-	return FREEIMAGE_ALGORITHMS_ERROR;
+	return FIA_ERROR;
 }
 
 
@@ -784,15 +783,15 @@ SaveColourImage (FIBITMAP *dib, const char *filepath, bool save_metadata)
 	int bufsize;
 	
 	if(dib == NULL)
-		return FREEIMAGE_ALGORITHMS_ERROR;
+		return FIA_ERROR;
 
-	if(FreeImageAlgorithms_IsGreyScale(dib))
-		return FREEIMAGE_ALGORITHMS_ERROR;
+	if(FIA_IsGreyScale(dib))
+		return FIA_ERROR;
 
 	err = IcsOpen (&ics, filepath, "w2");
 
 	if (err != IcsErr_Ok)
-   		return FREEIMAGE_ALGORITHMS_ERROR;
+   		return FIA_ERROR;
 
 	if(FreeImage_GetBPP(dib) != 24)
 		standard_dib = FreeImage_ConvertTo24Bits(dib);
@@ -818,24 +817,24 @@ SaveColourImage (FIBITMAP *dib, const char *filepath, bool save_metadata)
 	GetColourImageDataInIcsFormat(standard_dib, bits);
 
 	if( IcsSetLayout(ics, dt, ndims, (size_t *) dims) != IcsErr_Ok)
-		return FREEIMAGE_ALGORITHMS_ERROR;
+		return FIA_ERROR;
 
 	if( (err = IcsSetData(ics, bits, bufsize)) != IcsErr_Ok)
-		return FREEIMAGE_ALGORITHMS_ERROR;
+		return FIA_ERROR;
 		
 	if( IcsSetCompression (ics, IcsCompr_gzip, 0) != IcsErr_Ok)
-		return FREEIMAGE_ALGORITHMS_ERROR;
+		return FIA_ERROR;
 	
 	if( IcsClose (ics) != IcsErr_Ok) {
 		
 		FreeImage_Unload(dib);
-		return FREEIMAGE_ALGORITHMS_ERROR;
+		return FIA_ERROR;
 	}
 
 	free(bits);
 	FreeImage_Unload(standard_dib);
 
-	return FREEIMAGE_ALGORITHMS_SUCCESS;
+	return FIA_SUCCESS;
 }
 
 
@@ -847,7 +846,7 @@ FreeImageIcs_SaveImage (FIBITMAP *dib, const char *filepath, int save_metadata)
     if(save_metadata)
         md_save = 1;
 
-	if(FreeImageAlgorithms_IsGreyScale(dib))
+	if(FIA_IsGreyScale(dib))
 		return SaveGreyScaleImage (dib, filepath, md_save);
 	else
 		return SaveColourImage (dib, filepath, md_save);
@@ -864,8 +863,8 @@ FreeImageIcs_SaveIcsDataToFile (const char *filepath, void *data, Ics_DataType d
 	err = IcsOpen (&ics, filepath, "w2");
 
     if (err != IcsErr_Ok) {
-        FreeImageAlgorithms_SendOutputMessage("Error opening filepath %s", filepath);
-   		return FREEIMAGE_ALGORITHMS_ERROR;
+        FreeImage_OutputMessageProc(FIF_UNKNOWN, "Error opening filepath %s", filepath);
+   		return FIA_ERROR;
     }
 
 	for(int i=0; i < ndims; i++)
@@ -875,26 +874,26 @@ FreeImageIcs_SaveIcsDataToFile (const char *filepath, void *data, Ics_DataType d
     bufsize *= bytes_per_pixel;
 
     if( IcsSetLayout(ics, dt, ndims, (size_t *) dims) != IcsErr_Ok) {
-        FreeImageAlgorithms_SendOutputMessage("Error calling IcsSetLayout");
-		return FREEIMAGE_ALGORITHMS_ERROR;
+        FreeImage_OutputMessageProc(FIF_UNKNOWN, "Error calling IcsSetLayout");
+		return FIA_ERROR;
     }
 
     if( (err = IcsSetData(ics, data, bufsize)) != IcsErr_Ok) {
-        FreeImageAlgorithms_SendOutputMessage("Error calling IcsSetData buffer size %d bytes per pixel %d", bufsize, bytes_per_pixel);
-		return FREEIMAGE_ALGORITHMS_ERROR;
+        FreeImage_OutputMessageProc(FIF_UNKNOWN, "Error calling IcsSetData buffer size %d bytes per pixel %d", bufsize, bytes_per_pixel);
+		return FIA_ERROR;
     }
 		
     if( IcsSetCompression (ics, IcsCompr_gzip, 0) != IcsErr_Ok) {
-        FreeImageAlgorithms_SendOutputMessage("Error calling IcsSetCompression");
-		return FREEIMAGE_ALGORITHMS_ERROR;
+        FreeImage_OutputMessageProc(FIF_UNKNOWN, "Error calling IcsSetCompression");
+		return FIA_ERROR;
     }
 	
     if( IcsClose (ics) != IcsErr_Ok) {
-        FreeImageAlgorithms_SendOutputMessage("Error calling IcsClose");
-		return FREEIMAGE_ALGORITHMS_ERROR;
+        FreeImage_OutputMessageProc(FIF_UNKNOWN, "Error calling IcsClose");
+		return FIA_ERROR;
     }
 
-	return FREEIMAGE_ALGORITHMS_SUCCESS;
+	return FIA_SUCCESS;
 }
 
 Ics_Error DLL_CALLCONV

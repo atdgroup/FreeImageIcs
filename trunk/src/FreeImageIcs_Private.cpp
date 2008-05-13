@@ -1,7 +1,6 @@
 #include "FreeImageIcs_IO.h"
 #include "FreeImageIcs_MetaData.h"
 
-#include "FreeImageAlgorithms_Error.h"
 #include "FreeImageAlgorithms_IO.h"
 #include "FreeImageAlgorithms_Utilities.h"
 #include "FreeImageAlgorithms_Palettes.h"
