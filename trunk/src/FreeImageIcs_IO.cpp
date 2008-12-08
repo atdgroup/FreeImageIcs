@@ -730,9 +730,7 @@ SaveGreyScaleImage (FIBITMAP *dib, const char *filepath, bool save_metadata)
 
 	IcsSetOrder  (ics, 0, "x", "x-position");
 	IcsSetOrder  (ics, 1, "y", "y-position");
-    //IcsDeleteHistory (ics, "labels");
-    //IcsDeleteHistory (ics, "Labels");
-	
+
     if(save_metadata)
         IcsAddHistory  (ics, "labels", "x y");
 
@@ -752,20 +750,27 @@ SaveGreyScaleImage (FIBITMAP *dib, const char *filepath, bool save_metadata)
 	if( IcsSetCompression (ics, IcsCompr_gzip, 0) != IcsErr_Ok)
 		goto Error;
 	
-	if( IcsClose (ics) != IcsErr_Ok)
+	if( IcsClose (ics) != IcsErr_Ok) {
+		ics = NULL;
 		goto Error;
+	}
 
 	free(bits);
+	bits = NULL;
 
 	return FIA_SUCCESS;
 
 	Error:
 
-	if(bits)
+	if(bits) {
 		free(bits);
+		bits = NULL;
+	}
 
-    if(ics != NULL)
+	if(ics != NULL) {
         IcsClose (ics);
+		ics = NULL;
+	}
 
 	return FIA_ERROR;
 }
