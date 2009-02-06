@@ -30,7 +30,7 @@ FreeImageIcs_GetLabelForDimension (ICS *ics, int dimension, char *label)
 
     int no_of_dimensions = FreeImageIcs_NumberOfDimensions (ics);
 
-	if(FreeImageIcs_GetFirstIcsHistoryValueWithKey(ics, "Labels", labels) == FIA_ERROR)
+	if(FreeImageIcs_GetFirstIcsHistoryValueWithKey(ics, "labels", labels) == FIA_ERROR)
         return FIA_ERROR;
 
 	char *result = strtok(labels, " ");
