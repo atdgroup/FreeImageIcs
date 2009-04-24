@@ -901,6 +901,59 @@ FreeImageIcs_SaveIcsDataToFile (const char *filepath, void *data, Ics_DataType d
 	return FIA_SUCCESS;
 }
 
+
+int DLL_CALLCONV
+FreeImageIcs_SaveIcsImageDataToBinaryFile (const char *filepath, const char *output_filepath)
+{
+	ICS* ics;
+	Ics_Error err;
+	size_t bufsize = 1;
+	FILE *fp = NULL;
+	BYTE *bits = NULL;
+
+	err = IcsOpen (&ics, filepath, "r");
+
+    if (err != IcsErr_Ok) {
+        FreeImage_OutputMessageProc(FIF_UNKNOWN, "Error opening filepath %s", filepath);
+   		return FIA_ERROR;
+    }
+
+	//int bytes_per_pixel = GetIcsDataTypeBPP (dt) / 8;
+
+	bufsize = IcsGetDataSize (ics);
+    bits = (BYTE*) malloc(bufsize);
+
+    if( (err = IcsGetData(ics, bits, bufsize)) != IcsErr_Ok) {
+        FreeImage_OutputMessageProc(FIF_UNKNOWN, "Error calling IcsGetData buffer size");
+		goto Error;
+    }
+
+	if((fp = fopen(output_filepath, "wb")) == NULL) {
+		FreeImage_OutputMessageProc(FIF_UNKNOWN, "Error opening filepath %s", filepath);
+		goto Error;
+	}
+
+	 /* write the entire array in one step */
+	if( fwrite(bits, bufsize, 1, fp) != 1) {
+		FreeImage_OutputMessageProc(FIF_UNKNOWN, "Error saving filepath %s", filepath);
+		goto Error;
+	}
+
+	fclose(fp);
+		
+	if( (err = FreeImageIcs_IcsClose (ics)) != IcsErr_Ok)
+	    goto Error;
+
+	free(bits);
+
+	return FIA_SUCCESS;
+
+Error:
+
+	if(bits != NULL)
+		free(bits);
+}
+
 Ics_Error DLL_CALLCONV
 FreeImageIcs_IcsOpen (ICS* *ics, char const* filename, char const* mode)
 {
