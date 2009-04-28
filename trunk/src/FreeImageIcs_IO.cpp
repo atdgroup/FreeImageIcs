@@ -893,8 +893,8 @@ FreeImageIcs_SaveIcsDataToFile (const char *filepath, void *data, Ics_DataType d
 		return FIA_ERROR;
     }
 	
-    if( IcsClose (ics) != IcsErr_Ok) {
-        FreeImage_OutputMessageProc(FIF_UNKNOWN, "Error calling IcsClose");
+    if( (err = IcsClose (ics)) != IcsErr_Ok) {
+		FreeImage_OutputMessageProc(FIF_UNKNOWN, "Error calling IcsClose: %d", err);
 		return FIA_ERROR;
     }
 
