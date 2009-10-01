@@ -13,6 +13,8 @@ EXPORTS
     FreeImageIcs_IcsClose 
     FreeImageIcs_IcsDeleteHistory
     FreeImageIcs_IcsAddHistoryString 
+    FreeImageIcs_IcsSetNativeScale
+    FreeImageIcs_IcsSetNativeIntensityScale
     FreeImageIcs_IcsNewHistoryIterator 
     FreeImageIcs_IcsGetHistoryStringI 
     FreeImageIcs_SaveIcsFileWithDimensionsAs

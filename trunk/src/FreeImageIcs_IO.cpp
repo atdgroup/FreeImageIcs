@@ -973,6 +973,18 @@ FreeImageIcs_IcsAddHistoryString (ICS* ics, char const* key, char const* value)
 }
 
 Ics_Error DLL_CALLCONV
+FreeImageIcs_IcsSetNativeIntensityScale (ICS* ics, double origin, double scale, const char *units)
+{
+    return IcsSetImelUnits (ics, origin, scale, units);
+}
+
+Ics_Error DLL_CALLCONV
+FreeImageIcs_IcsSetNativeScale (ICS* ics, int dimension, double origin, double scale, const char *units)
+{
+    return IcsSetPosition  (ics, dimension, origin, scale, units);
+}
+
+Ics_Error DLL_CALLCONV
 FreeImageIcs_IcsNewHistoryIterator (ICS* ics, Ics_HistoryIterator* it, char const* key)
 {
     return IcsNewHistoryIterator (ics, it, key);

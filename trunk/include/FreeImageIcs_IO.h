@@ -53,6 +53,12 @@ DLL_API Ics_Error DLL_CALLCONV
 FreeImageIcs_IcsAddHistoryString (ICS* ics, char const* key, char const* value);
 
 DLL_API Ics_Error DLL_CALLCONV
+FreeImageIcs_IcsSetNativeScale (ICS* ics, int dimension, double origin, double scale, const char *units);
+
+DLL_API Ics_Error DLL_CALLCONV
+FreeImageIcs_IcsSetNativeIntensityScale (ICS* ics, double origin, double scale, const char *units);
+
+DLL_API Ics_Error DLL_CALLCONV
 FreeImageIcs_IcsNewHistoryIterator (ICS* ics, Ics_HistoryIterator* it, char const* key);
 
 DLL_API Ics_Error DLL_CALLCONV
