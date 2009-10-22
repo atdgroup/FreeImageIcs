@@ -31,6 +31,9 @@ DLL_API FIBITMAP* DLL_CALLCONV
 FreeImageIcs_LoadFIBFromIcsFilePath (const char* filepath);
 
 DLL_API FIBITMAP* DLL_CALLCONV
+FreeImageIcs_LoadFIBFromColourIcsFile (ICS *ics);
+
+DLL_API FIBITMAP* DLL_CALLCONV
 FreeImageIcs_GetIcsImageDimensionalDataSlice(ICS *ics, int dimension, int slice);
 
 DLL_API int DLL_CALLCONV

@@ -634,6 +634,19 @@ FreeImageIcs_LoadFIBFromIcsFile (ICS *ics)
 	return dib;
 }
 
+FIBITMAP* DLL_CALLCONV
+FreeImageIcs_LoadFIBFromColourIcsFile (ICS *ics)
+{
+	FIBITMAP *dib;
+	Ics_DataType dt;
+	int ndims, channels = 1;
+	int dims[ICS_MAXDIM];
+
+	if(IcsGetLayout (ics, &dt, &ndims, (size_t *) dims) != IcsErr_Ok)
+        return NULL;
+
+	return LoadFIBFromColourIcsFile (ics, dims[0], dims[1]);
+}
 
 FIBITMAP* DLL_CALLCONV
 FreeImageIcs_LoadFIBFromIcsFilePath (const char* filepath)

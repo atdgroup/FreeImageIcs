@@ -7,6 +7,7 @@ EXPORTS
     FreeImageIcs_IsIcsFileColourFile
     FreeImageIcs_LoadFIBFromIcsFile
     FreeImageIcs_LoadFIBFromIcsFilePath 
+    FreeImageIcs_LoadFIBFromColourIcsFile
     FreeImageIcs_GetIcsImageDimensionalDataSlice
     FreeImageIcs_SaveImage
     FreeImageIcs_IcsOpen 
