@@ -158,7 +158,7 @@ SwitchDimensionLabels (ICS *ics, char*out, size_t* order)
 {
 	char labels[ICS_LINE_LENGTH];
  
-	if(FreeImageIcs_GetFirstIcsHistoryValueWithKey(ics, "Labels", labels) == FIA_ERROR)
+	if(FreeImageIcs_GetFirstIcsHistoryValueWithKey(ics, "labels", labels) == FIA_ERROR)
         return FIA_ERROR;
 
 	std::string labels_str = std::string(labels);
@@ -256,15 +256,9 @@ FreeImageIcs_SaveIcsFileWithDimensionsAs(ICS *ics, const char *filepath, size_t*
 
     char out[100];
 
-	if(SwitchDimensionLabels (new_ics, out, order) == FIA_SUCCESS)
-    {
-	    // Change Labels History
-        FreeImageIcs_ReplaceIcsHistoryValueForKey(new_ics, "Labels", out);
-    }
-
     // Get number of dimensions in old ics file
     if( IcsSetLayout(new_ics, dt, ndims, (size_t *) dims) != IcsErr_Ok)
-		goto Error;
+		goto Error;	
 
     if( (err = IcsSetData(new_ics, bits, bufsize)) != IcsErr_Ok)
 		goto Error;
@@ -277,6 +271,12 @@ FreeImageIcs_SaveIcsFileWithDimensionsAs(ICS *ics, const char *filepath, size_t*
 	    IcsSetOrder (new_ics, i, order_str, label_str);
 	}
    
+	if(SwitchDimensionLabels (new_ics, out, order) == FIA_SUCCESS)
+    {
+	    // Change Labels History
+        FreeImageIcs_ReplaceIcsHistoryValueForKey(new_ics, "labels", out);
+    }
+
     if( (err = IcsSetCompression (new_ics, IcsCompr_gzip, 0)) != IcsErr_Ok)
 	    goto Error;
 
@@ -741,11 +741,9 @@ SaveGreyScaleImage (FIBITMAP *dib, const char *filepath, bool save_metadata)
 
 	bufsize = dims[0] * dims[1] * bytes_per_pixel;
 
-	IcsSetOrder  (ics, 0, "x", "x-position");
-	IcsSetOrder  (ics, 1, "y", "y-position");
-
-    if(save_metadata)
-        IcsAddHistory  (ics, "labels", "x y");
+	if(save_metadata) {
+		FreeImageIcs_ReplaceIcsHistoryValueForKey(ics, "labels", "x y");
+	}
 
 	BYTE *bits = (BYTE*) malloc(bufsize);
 
@@ -755,6 +753,12 @@ SaveGreyScaleImage (FIBITMAP *dib, const char *filepath, bool save_metadata)
 	FreeImage_GetBitsVerticalFlip(dib, bits);
 
 	if( IcsSetLayout(ics, dt, ndims, (size_t *) dims) != IcsErr_Ok)
+		goto Error;
+
+	if(IcsSetOrder  (ics, 0, "x", "x-position") != IcsErr_Ok)
+		goto Error;
+
+	if(IcsSetOrder  (ics, 1, "y", "y-position") != IcsErr_Ok)
 		goto Error;
 
 	if( (err = IcsSetData(ics, bits, bufsize)) != IcsErr_Ok)
@@ -821,20 +825,26 @@ SaveColourImage (FIBITMAP *dib, const char *filepath, bool save_metadata)
     dims[1] = FreeImage_GetHeight(standard_dib);
 	dims[2] = 3;
   
-	bufsize = dims[0] * dims[1] * dims[2];
-
-	IcsSetOrder  (ics, 0, "x", "x-position");
-	IcsSetOrder  (ics, 1, "y", "y-position");
-	IcsSetOrder	 (ics, 2, "c", "colour");
+	bufsize = dims[0] * dims[1] * dims[2];	
 	
-    if(save_metadata)
-        IcsAddHistory  (ics, "labels", "x y c");
+	if(save_metadata) {
+		FreeImageIcs_ReplaceIcsHistoryValueForKey(ics, "labels", "x y c");
+	}
 
 	BYTE *bits = (BYTE*) malloc(bufsize);
 
 	GetColourImageDataInIcsFormat(standard_dib, bits);
 
 	if( IcsSetLayout(ics, dt, ndims, (size_t *) dims) != IcsErr_Ok)
+		return FIA_ERROR;
+
+	if(IcsSetOrder  (ics, 0, "x", "x-position") != IcsErr_Ok)
+		return FIA_ERROR;
+
+	if(IcsSetOrder  (ics, 1, "y", "y-position") != IcsErr_Ok)
+		return FIA_ERROR;
+
+	if(IcsSetOrder	 (ics, 2, "c", "colour") != IcsErr_Ok)
 		return FIA_ERROR;
 
 	if( (err = IcsSetData(ics, bits, bufsize)) != IcsErr_Ok)
