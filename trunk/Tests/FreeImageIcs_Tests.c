@@ -2,7 +2,7 @@
 #include "FreeImageAlgorithms_IO.h"
 #include "FreeImageAlgorithms_LinearScale.h"
 
-#include "BasicWin32Window.h"
+//#include "BasicWin32Window.h"
 
 #include "FreeImageIcs_IO.h"
 #include "FreeImageIcs_MetaData.h"
@@ -46,7 +46,7 @@ TestFreeImageIcs_SwapDimensionIcsTest(CuTest* tc)
 
 	err = FreeImageIcs_SaveIcsFileWithFirstTwoDimensionsAs(ics, out_file, 2, 1);
 	
-    CuAssertTrue(tc, err == FREEIMAGE_ALGORITHMS_SUCCESS);
+    CuAssertTrue(tc, err == FIA_SUCCESS);
 }
 
 
@@ -159,8 +159,9 @@ TestFreeImageIcs_ReadMultiDimensionalColour(CuTest* tc)
 	ICS *ics;
 	Ics_Error err;
 	FIBITMAP* fib;
+	int bpp;
 
-	char *file = TEST_IMAGE_DIR "colour_test.ics";
+	char *file = "C:\\ColourTest.ics";
 
 	err = FreeImageIcs_IcsOpen (&ics, file, "r");
 
@@ -168,7 +169,9 @@ TestFreeImageIcs_ReadMultiDimensionalColour(CuTest* tc)
 
 	assert(fib != NULL);
 
-	ShowImage(fib);
+	bpp = FreeImage_GetBPP(fib);
+
+	//ShowImage(fib);
 
 	FreeImage_Unload(fib);
 
@@ -314,9 +317,9 @@ CuGetFreeImageIcsTestSuite(void)
 	//SUITE_ADD_TEST(suite, TestFreeImageIcs_MetaDataAdd);
 	//SUITE_ADD_TEST(suite, TestFreeImageIcs_ReadMultiDimensionalGreyScale);
 	//SUITE_ADD_TEST(suite, TestFreeImageIcs_ReadMultiDimensionalGreyScaleSlice);
-	//SUITE_ADD_TEST(suite, TestFreeImageIcs_ReadMultiDimensionalColour);
+	SUITE_ADD_TEST(suite, TestFreeImageIcs_ReadMultiDimensionalColour);
 	//SUITE_ADD_TEST(suite, TestFreeImageIcs_LoadTest);
-    SUITE_ADD_TEST(suite, TestFreeImageIcs_SwapDimensionIcsTest);
+    //SUITE_ADD_TEST(suite, TestFreeImageIcs_SwapDimensionIcsTest);
 
     //SUITE_ADD_TEST(suite, TestFreeImageIcs_GetDimensionalDetailTest);
 

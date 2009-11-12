@@ -556,11 +556,11 @@ FreeImageIcs_IsIcsFileColourFile(ICS *ics)
 	// They have left it as z. However, they have added some history with key labels 
 	// that does the same thing.
 	
-	if(FreeImageIcs_GetFirstIcsHistoryValueWithKey(ics, "labels", label) != FIA_SUCCESS)
-		return 0;
+	if(FreeImageIcs_GetFirstIcsHistoryValueWithKey(ics, "labels", label) == FIA_SUCCESS) {
 
-	if(strcmp(label, "x y c") == 0)
-		return 1;
+		if(strcmp(label, "x y c") == 0)
+			return 1;
+	}
 
 	// More tradintional layout
 	IcsGetLayout (ics, &dt, &ndims, (size_t *) dims);
