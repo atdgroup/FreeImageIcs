@@ -81,4 +81,4 @@ IF (UNIX)
 ENDIF (UNIX)
 
 # Link the executable to the FreeImage library.
-TARGET_LINK_LIBRARIES (FreeImageIcs freeimagealgorithms.lib ${FREEIMAGE_LIBRARY})
+TARGET_LINK_LIBRARIES (FreeImageIcs optimized freeimagealgorithms.lib debug freeimagealgorithms_d.lib ${FREEIMAGE_LIBRARY})

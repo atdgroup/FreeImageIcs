@@ -742,7 +742,7 @@ SaveGreyScaleImage (FIBITMAP *dib, const char *filepath, bool save_metadata)
 	bufsize = dims[0] * dims[1] * bytes_per_pixel;
 
 	if(save_metadata) {
-		FreeImageIcs_ReplaceIcsHistoryValueForKey(ics, "labels", "x y");
+		IcsAddHistory (ics, "labels", "x y");
 	}
 
 	BYTE *bits = (BYTE*) malloc(bufsize);
@@ -828,7 +828,7 @@ SaveColourImage (FIBITMAP *dib, const char *filepath, bool save_metadata)
 	bufsize = dims[0] * dims[1] * dims[2];	
 	
 	if(save_metadata) {
-		FreeImageIcs_ReplaceIcsHistoryValueForKey(ics, "labels", "x y c");
+		IcsAddHistory (ics, "labels", "x y c");
 	}
 
 	BYTE *bits = (BYTE*) malloc(bufsize);

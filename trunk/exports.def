@@ -1,4 +1,4 @@
-LIBRARY	"FreeImageIcs"
+LIBRARY
 EXPORTS
     FreeImageIcs_IsIcsFile 
     FreeImageIcs_NumberOfDimensions 
@@ -10,8 +10,10 @@ EXPORTS
     FreeImageIcs_LoadFIBFromColourIcsFile
     FreeImageIcs_GetIcsImageDimensionalDataSlice
     FreeImageIcs_SaveImage
+    FreeImageIcs_SaveIcsImageDataToBinaryFile
     FreeImageIcs_IcsOpen 
     FreeImageIcs_IcsClose 
+    FreeImageIcs_CopyHistoryText
     FreeImageIcs_IcsDeleteHistory
     FreeImageIcs_IcsAddHistoryString 
     FreeImageIcs_IcsSetNativeScale

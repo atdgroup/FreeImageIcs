@@ -21,11 +21,25 @@ TestFreeImageIcs_SaveIcsTest(CuTest* tc)
 	int err;
 	FIBITMAP* fib;
 
-    char *out_file = "C:\\Documents and Settings\\Pierce\\Desktop\\test.ics";
+    char *out_file = "C:\\test.ics";
 
     fib = FreeImage_AllocateT(FIT_FLOAT, 800, 600, 32, 0, 0, 0);
 
-FreeImageIcs_SaveImage (fib, out_file, 1);  
+	FreeImageIcs_SaveImage (fib, out_file, 1);  
+}
+
+static void
+TestFreeImageIcs_SaveColourIcsTest(CuTest* tc)
+{
+	ICS *ics = NULL, *new_ics;
+	int err;
+	FIBITMAP* fib;
+
+    char *out_file = "C:\\test.ics";
+
+    fib = FreeImage_AllocateT(FIT_BITMAP, 800, 600, 24, 0, 0, 0);
+
+	FreeImageIcs_SaveImage (fib, out_file, 1);  
 }
 
 static void
@@ -317,8 +331,8 @@ CuGetFreeImageIcsTestSuite(void)
 	//SUITE_ADD_TEST(suite, TestFreeImageIcs_MetaDataAdd);
 	//SUITE_ADD_TEST(suite, TestFreeImageIcs_ReadMultiDimensionalGreyScale);
 	//SUITE_ADD_TEST(suite, TestFreeImageIcs_ReadMultiDimensionalGreyScaleSlice);
-	SUITE_ADD_TEST(suite, TestFreeImageIcs_ReadMultiDimensionalColour);
-	//SUITE_ADD_TEST(suite, TestFreeImageIcs_LoadTest);
+	//SUITE_ADD_TEST(suite, TestFreeImageIcs_ReadMultiDimensionalColour);
+	SUITE_ADD_TEST(suite, TestFreeImageIcs_SaveColourIcsTest);
     //SUITE_ADD_TEST(suite, TestFreeImageIcs_SwapDimensionIcsTest);
 
     //SUITE_ADD_TEST(suite, TestFreeImageIcs_GetDimensionalDetailTest);
