@@ -201,6 +201,43 @@ static void CalculateStrides(ICS *ics, size_t* dims, int ndims, size_t *strides)
 	}
 }
 
+size_t DLL_CALLCONV
+FreeImageIcs_GetDataSize(ICS *ics)
+{
+    return IcsGetDataSize (ics);
+}
+
+Ics_Error DLL_CALLCONV
+FreeImageIcs_GetData (ICS* ics, void* dest, size_t n)
+{
+  return IcsGetData (ics, dest, n);
+}
+
+Ics_Error DLL_CALLCONV
+FreeImageIcs_SetData (ICS* ics, void const* src, size_t n)
+{
+  return IcsSetData (ics, src, n);
+}
+
+
+Ics_Error DLL_CALLCONV
+FreeImageIcs_GetLayout (ICS *ics, Ics_DataType* dt, int* ndims, size_t* dims)
+{
+    return IcsGetLayout(ics, dt, ndims, dims);
+}
+
+Ics_Error DLL_CALLCONV
+FreeImageIcs_SetLayout (ICS* ics, Ics_DataType dt, int ndims, size_t const* dims)
+{
+    return IcsSetLayout(ics, dt, ndims, dims);
+}
+
+Ics_Error DLL_CALLCONV
+FreeImageIcs_SetCompression (ICS* ics, Ics_Compression compression, int level)
+{
+  return IcsSetCompression (ics, compression, level);
+}
+
 int DLL_CALLCONV
 FreeImageIcs_SaveIcsFileWithDimensionsAs(ICS *ics, const char *filepath, size_t* order, int size)
 {
@@ -1005,16 +1042,4 @@ Ics_Error DLL_CALLCONV
 FreeImageIcs_IcsSetNativeScale (ICS* ics, int dimension, double origin, double scale, const char *units)
 {
     return IcsSetPosition  (ics, dimension, origin, scale, units);
-}
-
-Ics_Error DLL_CALLCONV
-FreeImageIcs_IcsNewHistoryIterator (ICS* ics, Ics_HistoryIterator* it, char const* key)
-{
-    return IcsNewHistoryIterator (ics, it, key);
-}
-
-Ics_Error DLL_CALLCONV
-FreeImageIcs_IcsGetHistoryStringI (ICS* ics, Ics_HistoryIterator* it, char* string)
-{
-    return IcsGetHistoryStringI (ics, it, string);
 }

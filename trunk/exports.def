@@ -9,6 +9,12 @@ EXPORTS
     FreeImageIcs_LoadFIBFromIcsFilePath 
     FreeImageIcs_LoadFIBFromColourIcsFile
     FreeImageIcs_GetIcsImageDimensionalDataSlice
+    FreeImageIcs_GetLayout
+    FreeImageIcs_SetLayout
+    FreeImageIcs_GetDataSize
+    FreeImageIcs_GetData
+    FreeImageIcs_SetData
+    FreeImageIcs_SetCompression
     FreeImageIcs_SaveImage
     FreeImageIcs_SaveIcsImageDataToBinaryFile
     FreeImageIcs_IcsOpen 

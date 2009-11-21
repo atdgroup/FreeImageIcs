@@ -78,6 +78,11 @@ Is the Iterator valid
 DLL_API int DLL_CALLCONV
 IsIcsHistoryIteratorValid (ICS* ics, Ics_HistoryIterator* it);
 
+DLL_API Ics_Error DLL_CALLCONV
+FreeImageIcs_IcsNewHistoryIterator (ICS* ics, Ics_HistoryIterator* it, char const* key);
+
+DLL_API Ics_Error DLL_CALLCONV
+FreeImageIcs_IcsGetHistoryStringI (ICS* ics, Ics_HistoryIterator* it, char* string);
 
 DLL_API int DLL_CALLCONV
 FreeImageIcs_GetHistoryText(ICS *ics, char *text);
@@ -89,6 +94,9 @@ FreeImageIcs_GetHistoryTextFromFile(const char *filepath, char *text);
 
 DLL_API int DLL_CALLCONV
 FreeImageIcs_CopyHistoryText(ICS *ics, ICS *dst_ics);
+
+DLL_API Ics_Error DLL_CALLCONV
+FreeImageIcs_IcsAddHistoryString (ICS* ics, char const* key, char const* value);
 
 #ifdef __cplusplus
 }

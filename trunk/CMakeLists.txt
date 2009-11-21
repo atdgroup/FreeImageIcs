@@ -69,7 +69,6 @@ SET(SRCS zlib/adler32.c
 		 src/FreeImageIcs_MetaData.cpp
 		 src/FreeImageIcs_Private.cpp
 		 exports.def
-		 exports_d.def
 )
 
 LINK_DIRECTORIES(${GCI_DLL_PATH})

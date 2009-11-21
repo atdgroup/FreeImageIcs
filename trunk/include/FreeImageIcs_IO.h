@@ -53,19 +53,10 @@ DLL_API Ics_Error DLL_CALLCONV
 FreeImageIcs_IcsClose (ICS* ics);
 
 DLL_API Ics_Error DLL_CALLCONV
-FreeImageIcs_IcsAddHistoryString (ICS* ics, char const* key, char const* value);
-
-DLL_API Ics_Error DLL_CALLCONV
 FreeImageIcs_IcsSetNativeScale (ICS* ics, int dimension, double origin, double scale, const char *units);
 
 DLL_API Ics_Error DLL_CALLCONV
 FreeImageIcs_IcsSetNativeIntensityScale (ICS* ics, double origin, double scale, const char *units);
-
-DLL_API Ics_Error DLL_CALLCONV
-FreeImageIcs_IcsNewHistoryIterator (ICS* ics, Ics_HistoryIterator* it, char const* key);
-
-DLL_API Ics_Error DLL_CALLCONV
-FreeImageIcs_IcsGetHistoryStringI (ICS* ics, Ics_HistoryIterator* it, char* string);
 
 DLL_API int DLL_CALLCONV
 FreeImageIcs_SaveIcsFileWithDimensionsAs(ICS *ics, const char *filepath, size_t* order, int size);
@@ -78,6 +69,24 @@ FreeImageIcs_SumIntensityProjection(ICS *ics, int dimension);
 
 DLL_API FIBITMAP* DLL_CALLCONV
 FreeImageIcs_MaximumIntensityProjection(ICS *ics, int dimension);
+
+DLL_API size_t DLL_CALLCONV
+FreeImageIcs_GetDataSize(ICS *ics);
+
+DLL_API Ics_Error DLL_CALLCONV
+FreeImageIcs_GetData (ICS* ics, void* dest, size_t n);
+
+DLL_API Ics_Error DLL_CALLCONV
+FreeImageIcs_SetData (ICS* ics, void const* src, size_t n);
+
+DLL_API Ics_Error DLL_CALLCONV
+FreeImageIcs_GetLayout (ICS *ics, Ics_DataType* dt, int* ndims, size_t* dims);
+
+DLL_API Ics_Error DLL_CALLCONV
+FreeImageIcs_SetLayout (ICS* ics, Ics_DataType dt, int ndims, size_t const* dims);
+
+DLL_API Ics_Error DLL_CALLCONV
+FreeImageIcs_SetCompression (ICS* ics, Ics_Compression compression, int level);
 
 #ifdef __cplusplus
 }

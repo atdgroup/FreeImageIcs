@@ -222,6 +222,18 @@ IsIcsHistoryIteratorValid (ICS* ics, Ics_HistoryIterator* it)
 	return it->next;
 }
 
+Ics_Error DLL_CALLCONV
+FreeImageIcs_IcsNewHistoryIterator (ICS* ics, Ics_HistoryIterator* it, char const* key)
+{
+    return IcsNewHistoryIterator (ics, it, key);
+}
+
+Ics_Error DLL_CALLCONV
+FreeImageIcs_IcsGetHistoryStringI (ICS* ics, Ics_HistoryIterator* it, char* string)
+{
+    return IcsGetHistoryStringI (ics, it, string);
+}
+
 int DLL_CALLCONV
 FreeImageIcs_GetHistoryText(ICS *ics, char *text)
 {
