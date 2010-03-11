@@ -314,7 +314,7 @@ FreeImageIcs_SaveIcsFileWithDimensionsAs(ICS *ics, const char *filepath, size_t*
         FreeImageIcs_ReplaceIcsHistoryValueForKey(new_ics, "labels", out);
     }
 
-    if( (err = IcsSetCompression (new_ics, IcsCompr_gzip, 0)) != IcsErr_Ok)
+    if( (err = IcsSetCompression (new_ics, IcsCompr_gzip, 7)) != IcsErr_Ok)
 	    goto Error;
 
     if( (err = FreeImageIcs_IcsClose (new_ics)) != IcsErr_Ok)
@@ -801,7 +801,7 @@ SaveGreyScaleImage (FIBITMAP *dib, const char *filepath, bool save_metadata)
 	if( (err = IcsSetData(ics, bits, bufsize)) != IcsErr_Ok)
 		goto Error;
 		
-	if( IcsSetCompression (ics, IcsCompr_gzip, 0) != IcsErr_Ok)
+	if( IcsSetCompression (ics, IcsCompr_gzip, 7) != IcsErr_Ok)
 		goto Error;
 	
 	if( IcsClose (ics) != IcsErr_Ok) {
@@ -887,7 +887,7 @@ SaveColourImage (FIBITMAP *dib, const char *filepath, bool save_metadata)
 	if( (err = IcsSetData(ics, bits, bufsize)) != IcsErr_Ok)
 		return FIA_ERROR;
 		
-	if( IcsSetCompression (ics, IcsCompr_gzip, 0) != IcsErr_Ok)
+	if( IcsSetCompression (ics, IcsCompr_gzip, 7) != IcsErr_Ok)
 		return FIA_ERROR;
 	
 	if( IcsClose (ics) != IcsErr_Ok) {
@@ -948,7 +948,7 @@ FreeImageIcs_SaveIcsDataToFile (const char *filepath, void *data, Ics_DataType d
 		return FIA_ERROR;
     }
 		
-    if( IcsSetCompression (ics, IcsCompr_gzip, 0) != IcsErr_Ok) {
+    if( IcsSetCompression (ics, IcsCompr_gzip, 7) != IcsErr_Ok) {
         FreeImage_OutputMessageProc(FIF_UNKNOWN, "Error calling IcsSetCompression");
 		return FIA_ERROR;
     }
