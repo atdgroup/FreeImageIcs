@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include "profile.h"
 
 #include "CuTest.h"
 
@@ -27,6 +28,8 @@ int main()
 	char string[10];
 
 	RunAllTests();
+
+	PROFILE_PRINT();
 
 	gets(string);
 

@@ -35,6 +35,8 @@
 #include <string>
 #include <algorithm>
 
+#include "profile.h"
+
 // This gets the size in bytes between each element in a dimension
 // The first dimension 0 always return the size of dataType.
 static Ics_Error DLL_CALLCONV
@@ -398,7 +400,7 @@ FreeImageIcs_GetIcsImageDimensionalDataSlice(ICS *ics, int dimension, int slice)
 
 	memset(dims, 0, sizeof(size_t) * ICS_MAXDIM);
 
-	// Reset the poiter to the beginning of file.
+	// Reset the pointer to the beginning of file.
 	if(ics->BlockRead)
 		IcsSetIdsBlock (ics, 0, SEEK_SET);
 
@@ -414,15 +416,10 @@ FreeImageIcs_GetIcsImageDimensionalDataSlice(ICS *ics, int dimension, int slice)
 
 	size_t bufsize;
 
-
-
-	GetSizeInBytesBetweenDimensions(dims, ndims, dataType, dimension, &bufsize);
-		
-
+	GetSizeInBytesBetweenDimensions(dims, ndims, dataType, dimension, &bufsize);		
+	
 	if(IcsSkipDataBlock  (ics, bufsize * slice) != IcsErr_Ok)
 		return NULL;
-
-
 
 	BYTE *buf = (BYTE *) malloc (bufsize);
 
@@ -443,6 +440,42 @@ FreeImageIcs_GetIcsImageDimensionalDataSlice(ICS *ics, int dimension, int slice)
 }
 
 
+static FIBITMAP*
+FreeImageIcs_GetIcsImageDimensionalDataSliceFromData(BYTE *data, Ics_DataType dataType, int ndims,  size_t *dims, int dimension, int slice)
+{
+	size_t dimension_size;
+
+    if(dimension < 2)
+        return NULL;
+
+	// Dimension must not be greater than the total dimensions
+	if(dimension > ndims)
+		return NULL;
+
+	// If the slice is greater than the size for that dimension return error;
+	if(slice != 0 && slice >= (int) dims[dimension])
+		return NULL;
+
+	GetSizeInBytesBetweenDimensions(dims, ndims, dataType, dimension, &dimension_size);
+		
+	// Skip data block
+	data += (dimension_size * slice);
+
+	BYTE *buf = (BYTE *) malloc (dimension_size);
+
+	if (buf == NULL)
+   		return NULL;
+
+	memcpy(buf, data, dimension_size);
+
+	FIBITMAP *dib =
+        FreeImageIcs_CreateFIB(buf, dataType, GetIcsDataTypeBPP (dataType), (int) dims[0], (int) dims[1], 0, 0);
+	
+	free(buf);
+
+	return dib;
+}
+
 // This function get the sum intensity projection of each slice in the multidimensional image.
 // The dimension must be specified.
 // Each slice is made up off the first two dimensions.
@@ -451,7 +484,8 @@ FreeImageIcs_SumIntensityProjection(ICS *ics, int dimension)
 {
     Ics_DataType dataType;
 	int ndims;
-	size_t dims[ICS_MAXDIM];
+	size_t dims[ICS_MAXDIM], bufsize;
+	BYTE *data = NULL;
 
     if(dimension < 2)
         return NULL;
@@ -469,15 +503,18 @@ FreeImageIcs_SumIntensityProjection(ICS *ics, int dimension)
     int width = dims[0];
     int height = dims[1];
 
-    // Create summed image
-    FIBITMAP *slice = FreeImageIcs_GetIcsImageDimensionalDataSlice(ics, dimension, 0);
+    bufsize = IcsGetDataSize (ics);
+	data = (BYTE*) malloc(bufsize);
 
-    if(slice == NULL)
-        return NULL;
+	if(IcsGetData(ics, data, bufsize) != IcsErr_Ok) {
+        FreeImage_OutputMessageProc(FIF_UNKNOWN, "Error calling IcsGetData buffer size");
+		goto Error;
+    }
+        
+    FIBITMAP *sum = FreeImage_AllocateT(FIT_FLOAT, width, height, 32, 0, 0, 0);
 
-    FIBITMAP *sum = FreeImage_ConvertToType(slice, FIT_FLOAT, 0);
-    
-    FreeImage_Unload(slice);
+    if(sum == NULL)
+         goto Error;
 
     if(sum == NULL)
         return NULL;
@@ -490,8 +527,8 @@ FreeImageIcs_SumIntensityProjection(ICS *ics, int dimension)
     for(int i=1; i < number_of_slices; i++) {
 
         // Get slice image
-        if((tmp = FreeImageIcs_GetIcsImageDimensionalDataSlice(ics, dimension, i)) == NULL)
-            goto Error;
+		if((tmp = FreeImageIcs_GetIcsImageDimensionalDataSliceFromData(data, dataType, ndims,  dims, dimension, i)) == NULL)
+			goto Error;
 
         if(FIA_AddGreyLevelImages(sum, tmp) == FIA_ERROR) {
             FreeImage_Unload(tmp);
@@ -505,6 +542,7 @@ FreeImageIcs_SumIntensityProjection(ICS *ics, int dimension)
 
     Error:
     
+		free(data);
         FreeImage_Unload(sum);
         return NULL;
 }
@@ -514,7 +552,8 @@ FreeImageIcs_MaximumIntensityProjection(ICS *ics, int dimension)
 {
     Ics_DataType dataType;
 	int ndims;
-	size_t dims[ICS_MAXDIM];
+	size_t dims[ICS_MAXDIM], bufsize;
+	BYTE *data = NULL;
 
     if(dimension < 2)
         return NULL;
@@ -522,7 +561,7 @@ FreeImageIcs_MaximumIntensityProjection(ICS *ics, int dimension)
 	memset(dims, 0, sizeof(size_t) * ICS_MAXDIM);
 
 	IcsGetLayout (ics, &dataType, &ndims, dims);
-
+	
 	// Dimension must not be greater than the total dimensions
 	if(dimension > ndims)
 		return NULL;
@@ -532,18 +571,18 @@ FreeImageIcs_MaximumIntensityProjection(ICS *ics, int dimension)
     int width = dims[0];
     int height = dims[1];
 
-    // Create summed image
-    FIBITMAP *slice = FreeImageIcs_GetIcsImageDimensionalDataSlice(ics, dimension, 0);
-    
-    if(slice == NULL)
-        return NULL;
+	bufsize = IcsGetDataSize (ics);
+	data = (BYTE*) malloc(bufsize);
+
+	if(IcsGetData(ics, data, bufsize) != IcsErr_Ok) {
+        FreeImage_OutputMessageProc(FIF_UNKNOWN, "Error calling IcsGetData buffer size");
+		goto Error;
+    }
         
-    FIBITMAP *sum = FreeImage_ConvertToType(slice, FIT_FLOAT, 0);
-    
-    FreeImage_Unload(slice);
+    FIBITMAP *sum = FreeImage_AllocateT(FIT_FLOAT, width, height, 32, 0, 0, 0);
 
     if(sum == NULL)
-        return NULL;
+         goto Error;
     
     if(number_of_slices < 2)
         return sum;
@@ -552,14 +591,21 @@ FreeImageIcs_MaximumIntensityProjection(ICS *ics, int dimension)
 
     for(int i=1; i < number_of_slices; i++) {
 
-        // Get slice image
-        if((tmp = FreeImageIcs_GetIcsImageDimensionalDataSlice(ics, dimension, i)) == NULL)
-            goto Error;
+		PROFILE_START("FreeImageIcs_GetIcsImageDimensionalDataSlice");
+
+		if((tmp = FreeImageIcs_GetIcsImageDimensionalDataSliceFromData(data, dataType, ndims,  dims, dimension, i)) == NULL)
+			goto Error;
+
+		PROFILE_STOP("FreeImageIcs_GetIcsImageDimensionalDataSlice");
+
+		PROFILE_START("FIA_GetMaxIntensityFromImages");
 
         if(FIA_GetMaxIntensityFromImages(sum, tmp) == FIA_ERROR)             {
             FreeImage_Unload(tmp);
             goto Error;
         }
+
+		PROFILE_STOP("FIA_GetMaxIntensityFromImages");
 
         FreeImage_Unload(tmp);
     }
@@ -568,6 +614,7 @@ FreeImageIcs_MaximumIntensityProjection(ICS *ics, int dimension)
 
     Error:
     
+		free(data);
         FreeImage_Unload(sum);
         return NULL;
 }

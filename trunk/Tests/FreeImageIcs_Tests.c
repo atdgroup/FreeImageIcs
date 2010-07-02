@@ -82,7 +82,7 @@ TestFreeImageIcs_SumIntensityProjection(CuTest* tc)
 
     CuAssertTrue(tc, fib != NULL);
 
-	FreeImageAlgorithms_SaveFIBToFile (fib, "C:\\Documents and Settings\\Pierce\\Desktop\\sum_intensity_project.bmp", BIT8);
+	FIA_SaveFIBToFile (fib, "C:\\Documents and Settings\\Pierce\\Desktop\\sum_intensity_project.bmp", BIT8);
 
 	FreeImage_Unload(fib);
 	FreeImageIcs_IcsClose(ics);
@@ -97,8 +97,10 @@ TestFreeImageIcs_MaxIntensityProjection(CuTest* tc)
 	Ics_Error err;
 	FIBITMAP* fib;
 
-	char *file = "C:\\Documents and Settings\\Pierce\\Desktop\\imageStack1.ics";
+	char *file = "C:\\Csarseven.ics";
   
+	PROFILE_START("TestFreeImageIcs_MaxIntensityProjection");
+
 	err = FreeImageIcs_IcsOpen (&ics, file, "r");
 
     CuAssertTrue(tc, err == IcsErr_Ok);
@@ -107,11 +109,12 @@ TestFreeImageIcs_MaxIntensityProjection(CuTest* tc)
 
     CuAssertTrue(tc, fib != NULL);
 
-	FreeImageAlgorithms_SaveFIBToFile (fib, "C:\\Documents and Settings\\Pierce\\Desktop\\max_intensity_project.bmp", BIT8);
+	FIA_SaveFIBToFile (fib, "C:\\max_intensity_project.bmp", BIT8);
 
 	FreeImage_Unload(fib);
 	FreeImageIcs_IcsClose(ics);
 
+	PROFILE_STOP("TestFreeImageIcs_MaxIntensityProjection");
 }
 
 
@@ -232,7 +235,7 @@ TestFreeImageIcs_LoadTest(CuTest* tc)
 	
 	CuAssertTrue(tc, dib1 != NULL);
 
-	FreeImageAlgorithms_SaveFIBToFile (dib1, "C:\\Documents and Settings\\Pierce\\Desktop\\here.bmp", BIT8);
+	FIA_SaveFIBToFile (dib1, "C:\\Documents and Settings\\Pierce\\Desktop\\here.bmp", BIT8);
 
 	FreeImage_Unload(dib1);
 	FreeImageIcs_IcsClose(ics);
@@ -310,7 +313,7 @@ TestFreeImageAlgorithms_LinearScaleTest(CuTest* tc)
     //PROFILE_STOP("LinearScale");
 
 
-    //FreeImageAlgorithms_SaveFIBToFile(scaled_dib, "C:\\Documents and Settings\\Pierce\\Desktop\\output.bmp", BIT8);
+    //FIA_SaveFIBToFile(scaled_dib, "C:\\Documents and Settings\\Pierce\\Desktop\\output.bmp", BIT8);
 
     FreeImage_Unload(scaled_dib);
 	FreeImage_Unload(dib);
@@ -326,13 +329,13 @@ CuGetFreeImageIcsTestSuite(void)
     //SUITE_ADD_TEST(suite, TestFreeImageAlgorithms_LinearScaleTest);
 
     //SUITE_ADD_TEST(suite, TestFreeImageIcs_SumIntensityProjection);
-    //SUITE_ADD_TEST(suite, TestFreeImageIcs_MaxIntensityProjection);
+    SUITE_ADD_TEST(suite, TestFreeImageIcs_MaxIntensityProjection);
 
 	//SUITE_ADD_TEST(suite, TestFreeImageIcs_MetaDataAdd);
 	//SUITE_ADD_TEST(suite, TestFreeImageIcs_ReadMultiDimensionalGreyScale);
 	//SUITE_ADD_TEST(suite, TestFreeImageIcs_ReadMultiDimensionalGreyScaleSlice);
 	//SUITE_ADD_TEST(suite, TestFreeImageIcs_ReadMultiDimensionalColour);
-	SUITE_ADD_TEST(suite, TestFreeImageIcs_SaveColourIcsTest);
+	//SUITE_ADD_TEST(suite, TestFreeImageIcs_SaveColourIcsTest);
     //SUITE_ADD_TEST(suite, TestFreeImageIcs_SwapDimensionIcsTest);
 
     //SUITE_ADD_TEST(suite, TestFreeImageIcs_GetDimensionalDetailTest);
