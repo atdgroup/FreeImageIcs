@@ -30,6 +30,4 @@ using System.Runtime.InteropServices;
 
 [assembly: CLSCompliant(false)]
 
-[assembly: SecurityPermission(SecurityAction.RequestMinimum, Execution = true)]
-
 [assembly: ComVisible(false)]
