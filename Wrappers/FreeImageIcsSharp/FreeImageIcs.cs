@@ -72,7 +72,12 @@ namespace FreeImageIcs
         {
             get
             {
-                FIBITMAP dib = FreeImageIcsNativeMethods.LoadFIBFromIcsFile(this.ics);
+                FIBITMAP dib = FIBITMAP.Zero;
+                
+                if(FreeImageIcsNativeMethods.NumberOfDimensions(ics) == 3)
+                    dib = FreeImageIcsNativeMethods.LoadFIBFromColourIcsFile(this.ics);
+                else
+                    dib = FreeImageIcsNativeMethods.LoadFIBFromIcsFile(this.ics);
 
                 return new FreeImageAlgorithmsBitmap(dib);
             }

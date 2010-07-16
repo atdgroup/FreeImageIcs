@@ -39,6 +39,12 @@ namespace FreeImageIcs
         [DllImport(FreeImageIcsDll, EntryPoint="FreeImageIcs_LoadFIBFromIcsFile")]
         internal static extern FIBITMAP LoadFIBFromIcsFile(IntPtr ics);
 
+        [DllImport(FreeImageIcsDll, EntryPoint = "FreeImageIcs_NumberOfDimensions")]
+        internal static extern int NumberOfDimensions(IntPtr ics);
+
+        [DllImport(FreeImageIcsDll, EntryPoint = "FreeImageIcs_LoadFIBFromColourIcsFile")]
+        internal static extern FIBITMAP LoadFIBFromColourIcsFile(IntPtr ics);
+
         [DllImport(FreeImageIcsDll, EntryPoint = "FreeImageIcs_SaveImage")]
         internal static extern bool SaveImage(FIBITMAP fib, string filepath, bool save_metadata);
 
