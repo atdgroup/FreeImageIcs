@@ -90,6 +90,9 @@ FreeImageIcs_SumIntensityProjection(ICS *ics, int dimension);
 DLL_API FIBITMAP* DLL_CALLCONV
 FreeImageIcs_MaximumIntensityProjection(ICS *ics, int dimension);
 
+DLL_API void DLL_CALLCONV
+FreeImageIcs_SetCompressionLevel (int level);
+
 DLL_API size_t DLL_CALLCONV
 FreeImageIcs_GetDataSize(ICS *ics);
 

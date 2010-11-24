@@ -37,6 +37,10 @@
 
 #include "profile.h"
 
+// This is to allow the client to set a global compression level
+// RGB images can take ages to save when using compression.
+static int compression_level = 7;
+
 // This gets the size in bytes between each element in a dimension
 // The first dimension 0 always return the size of dataType.
 static Ics_Error DLL_CALLCONV
@@ -223,6 +227,18 @@ static void CalculateStrides(ICS *ics, size_t* dims, int ndims, size_t *strides)
 	}
 }
 
+void  DLL_CALLCONV
+FreeImageIcs_SetCompressionLevel (int level)
+{
+	if(level < 0)
+		level = 0;
+
+	if(level > 9)
+		level = 9;
+
+	compression_level = level;
+}
+
 size_t DLL_CALLCONV
 FreeImageIcs_GetDataSize(ICS *ics)
 {
@@ -336,7 +352,7 @@ FreeImageIcs_SaveIcsFileWithDimensionsAs(ICS *ics, const char *filepath, size_t*
         FreeImageIcs_ReplaceIcsHistoryValueForKey(new_ics, "labels", out);
     }
 
-    if( (err = IcsSetCompression (new_ics, IcsCompr_gzip, 7)) != IcsErr_Ok)
+    if( (err = IcsSetCompression (new_ics, IcsCompr_gzip, compression_level)) != IcsErr_Ok)
 	    goto Error;
 
     if( (err = FreeImageIcs_IcsClose (new_ics)) != IcsErr_Ok)
@@ -868,7 +884,7 @@ SaveGreyScaleImage (FIBITMAP *dib, const char *filepath, bool save_metadata)
 	if( (err = IcsSetData(ics, bits, bufsize)) != IcsErr_Ok)
 		goto Error;
 		
-	if( IcsSetCompression (ics, IcsCompr_gzip, 7) != IcsErr_Ok)
+	if( IcsSetCompression (ics, IcsCompr_gzip, compression_level) != IcsErr_Ok)
 		goto Error;
 	
 	if( IcsClose (ics) != IcsErr_Ok) {
@@ -954,7 +970,7 @@ SaveColourImage (FIBITMAP *dib, const char *filepath, bool save_metadata)
 	if( (err = IcsSetData(ics, bits, bufsize)) != IcsErr_Ok)
 		return FIA_ERROR;
 		
-	if( IcsSetCompression (ics, IcsCompr_gzip, 7) != IcsErr_Ok)
+	if( IcsSetCompression (ics, IcsCompr_gzip, compression_level) != IcsErr_Ok)
 		return FIA_ERROR;
 	
 	if( IcsClose (ics) != IcsErr_Ok) {
@@ -1015,7 +1031,7 @@ FreeImageIcs_SaveIcsDataToFile (const char *filepath, void *data, Ics_DataType d
 		return FIA_ERROR;
     }
 		
-    if( IcsSetCompression (ics, IcsCompr_gzip, 7) != IcsErr_Ok) {
+    if( IcsSetCompression (ics, IcsCompr_gzip, compression_level) != IcsErr_Ok) {
         FreeImage_OutputMessageProc(FIF_UNKNOWN, "Error calling IcsSetCompression");
 		return FIA_ERROR;
     }

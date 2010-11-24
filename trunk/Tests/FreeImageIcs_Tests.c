@@ -320,17 +320,61 @@ TestFreeImageAlgorithms_LinearScaleTest(CuTest* tc)
 
 }
 
+static void
+TestFreeImageIcs_SaveLargeColourIcsTest(CuTest* tc)
+{
+	ICS *ics = NULL, *new_ics;
+	int err;
+	FIBITMAP* fib;
+
+    char *file = "C:\\ColourTest.ics";
+	
+	FreeImageIcs_SetCompressionLevel(0);
+
+	fib = FreeImageIcs_LoadFIBFromIcsFilePath(file);
+
+	PROFILE_START("FreeImageIcs_SaveImage");
+
+	FreeImageIcs_SaveImage (fib, "C:\\out.ics", 1);  
+
+	PROFILE_STOP("FreeImageIcs_SaveImage");
+
+	FreeImage_Unload(fib);
+}
+
+static void
+TestFreeImageIcs_SaveLargeGreyscaleIcsTest(CuTest* tc)
+{
+	ICS *ics = NULL, *new_ics;
+	int err;
+	FIBITMAP* fib;
+
+    char *file = "C:\\GreyscaleTest.ics";
+	
+	fib = FreeImageIcs_LoadFIBFromIcsFilePath(file);
+
+	PROFILE_START("FreeImageIcs_SaveImage");
+
+	FreeImageIcs_SaveImage (fib, "C:\\out.ics", 1);  
+
+	PROFILE_STOP("FreeImageIcs_SaveImage");
+
+	FreeImage_Unload(fib);
+}
+
+
 
 CuSuite*
 CuGetFreeImageIcsTestSuite(void)
 {
 	CuSuite* suite = CuSuiteNew();
 
+	SUITE_ADD_TEST(suite, TestFreeImageIcs_SaveLargeColourIcsTest);
+	//SUITE_ADD_TEST(suite, TestFreeImageIcs_SaveLargeGreyscaleIcsTest);
+
     //SUITE_ADD_TEST(suite, TestFreeImageAlgorithms_LinearScaleTest);
-
     //SUITE_ADD_TEST(suite, TestFreeImageIcs_SumIntensityProjection);
-    SUITE_ADD_TEST(suite, TestFreeImageIcs_MaxIntensityProjection);
-
+    //SUITE_ADD_TEST(suite, TestFreeImageIcs_MaxIntensityProjection);
 	//SUITE_ADD_TEST(suite, TestFreeImageIcs_MetaDataAdd);
 	//SUITE_ADD_TEST(suite, TestFreeImageIcs_ReadMultiDimensionalGreyScale);
 	//SUITE_ADD_TEST(suite, TestFreeImageIcs_ReadMultiDimensionalGreyScaleSlice);
