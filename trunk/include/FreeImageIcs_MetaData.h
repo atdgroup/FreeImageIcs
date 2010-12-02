@@ -107,7 +107,6 @@ FreeImageIcs_IcsGetHistoryStringI (ICS* ics, Ics_HistoryIterator* it, char* stri
 DLL_API int DLL_CALLCONV
 FreeImageIcs_GetHistoryText(ICS *ics, char *text);
 
-
 DLL_API int DLL_CALLCONV
 FreeImageIcs_GetHistoryTextFromFile(const char *filepath, char *text);
 
