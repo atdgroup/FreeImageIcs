@@ -293,7 +293,7 @@ ICSEXPORT Ics_Error IcsGetROIData (ICS* ics, size_t const* offset,
  * in one of the parameters, set the pointer to NULL. Only valid if reading. */
 
 ICSEXPORT Ics_Error IcsGetDataWithStrides (ICS* ics, void* dest, size_t n,
-                                           size_t* stride, int ndims);
+                                           size_t const* stride, int ndims);
 /* Read the image from an ICS file into a sub-block of a memory block. To
  * use the defaults in one of the parameters, set the pointer to NULL. Only
  * valid if reading. */

@@ -14,7 +14,6 @@ SET(CMAKE_DEBUG_POSTFIX "_d")
 # Look for the FreeImage library
 FIND_PACKAGE(FreeImage REQUIRED) 
 
-FIND_PATH (GCI_DLL_PATH StringUtils.lib FORCE "C://dlls")
 FIND_PATH (FREEIMAGEALGORITHMS_DIR_PATH FreeImageAlgorithms ../..)
 
 # Make sure the compiler can find include files from our library.

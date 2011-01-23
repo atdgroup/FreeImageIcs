@@ -91,7 +91,9 @@
  * library will be able to read GZIP compressed files.
  * This variable is set by the makefile -- enable ZLIB support there.
  */
+#ifndef ICS_ZLIB
 #define ICS_ZLIB
+#endif
 
 /*
  * These are used internally when the precise length of a variable is needed.
