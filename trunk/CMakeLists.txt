@@ -13,8 +13,7 @@ SET(CMAKE_DEBUG_POSTFIX "_d")
 
 # Look for the FreeImage library
 FIND_PACKAGE(FreeImage REQUIRED) 
-
-FIND_PATH (FREEIMAGEALGORITHMS_DIR_PATH FreeImageAlgorithms ../..)
+FIND_PACKAGE(FreeImageAlgorithms REQUIRED)
 
 # Make sure the compiler can find include files from our library.
 INCLUDE_DIRECTORIES(include src 
@@ -22,8 +21,7 @@ INCLUDE_DIRECTORIES(include src
 							Tests
 							libics-1.5.1
 							${FREEIMAGE_INCLUDE_PATH}
-							${FreeImageAlgorithms_DIR_PATH}
-							${FREEIMAGEALGORITHMS_DIR_PATH}/FreeImageAlgorithms/trunk/include
+                            ${FREEIMAGEALGORITHMS_INCLUDE_PATH}
 )
 
 SET (LIBRARY_OUTPUT_PATH ${FreeImageIcs_BINARY_DIR}/bin)
@@ -31,7 +29,7 @@ SET (EXECUTABLE_OUTPUT_PATH ${FreeImageIcs_BINARY_DIR}/bin)
 
 CONFIGURE_FILE(${FreeImageIcs_SOURCE_DIR}/Tests/Constants.h.template ${FreeImageIcs_SOURCE_DIR}/Tests/Constants.h)
 
-LINK_DIRECTORIES(${LIBRARY_OUTPUT_PATH})
+LINK_DIRECTORIES(${LIBRARY_OUTPUT_PATH} ${FREEIMAGEALGORITHMS_LIBRARY})
 
 IF(WIN32)
 SET(CMAKE_CXX_STANDARD_LIBRARIES "user32.lib gdi32.lib")
@@ -39,7 +37,7 @@ ENDIF(WIN32)
 
 MESSAGE( STATUS "EXECUTABLE_OUTPUT_PATH: " ${EXECUTABLE_OUTPUT_PATH} )
 
-ADD_DEFINITIONS(-DFREEIMAGE_EXPORTS -DICS_ZLIB -D_CRT_SECURE_NO_WARNINGS)
+ADD_DEFINITIONS(-DFREEIMAGE_EXPORTS -DICS_ZLIB -DHAVE_STRINGS_STRCASECMP -D_CRT_SECURE_NO_WARNINGS)
 
 SET(SRCS zlib/adler32.c
 	     zlib/compress.c
@@ -70,6 +68,11 @@ SET(SRCS zlib/adler32.c
 		 exports.def
 )
 
+SET(PUBLIC_HEADERS
+         include/FreeImageIcs_IO.h
+         include/FreeImageIcs_MetaData.h
+)
+
 LINK_DIRECTORIES(${GCI_DLL_PATH})
 
 ADD_LIBRARY (FreeImageIcs SHARED ${SRCS})
@@ -79,4 +82,19 @@ IF (UNIX)
 ENDIF (UNIX)
 
 # Link the executable to the FreeImage library.
-TARGET_LINK_LIBRARIES (FreeImageIcs optimized freeimagealgorithms.lib debug freeimagealgorithms_d.lib ${FREEIMAGE_LIBRARY})
+TARGET_LINK_LIBRARIES (FreeImageIcs ${FREEIMAGEALGORITHMS_LIBRARY} ${FREEIMAGE_LIBRARY})
+
+IF (UNIX)
+  INSTALL(TARGETS FreeImageIcs RUNTIME DESTINATION bin LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
+
+  SET(CMAKE_INSTALL_PREFIX /usr/local                                           CACHE PATH "Install prefix")
+  SET(BIN_INSTALL_DIR      ${CMAKE_INSTALL_PREFIX}/bin                          CACHE PATH "Binary install dir")
+  SET(LIB_INSTALL_DIR      ${CMAKE_INSTALL_PREFIX}/lib${LIB_SUFFIX}             CACHE PATH "Library install dir")
+  SET(LIBEXEC_INSTALL_DIR  ${CMAKE_INSTALL_PREFIX}/libexec                      CACHE PATH "Private executable install dir")
+  SET(INCLUDE_INSTALL_DIR  ${CMAKE_INSTALL_PREFIX}/include/FreeImageIcs         CACHE PATH "Include install dir")
+  SET(SYSCONF_INSTALL_DIR  ${CMAKE_INSTALL_PREFIX}/etc                          CACHE PATH "Configuration install dir")
+  SET(SHARE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX}/share                        CACHE PATH "Data install dir")
+
+  INSTALL (FILES ${PUBLIC_HEADERS} DESTINATION ${INCLUDE_INSTALL_DIR})
+
+ENDIF (UNIX)

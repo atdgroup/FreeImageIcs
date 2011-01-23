@@ -24,7 +24,6 @@
 #include "FreeImageAlgorithms_IO.h"
 #include "FreeImageAlgorithms_Utilities.h"
 #include "FreeImageAlgorithms_Palettes.h"
-#include "FreeImageAlgorithms_Utils.h"
 
 #include "libics_ll.h"
 

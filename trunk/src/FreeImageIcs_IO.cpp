@@ -25,7 +25,6 @@
 #include "FreeImageAlgorithms_IO.h"
 #include "FreeImageAlgorithms_Utilities.h"
 #include "FreeImageAlgorithms_Palettes.h"
-#include "FreeImageAlgorithms_Utils.h"
 #include "FreeImageAlgorithms_Arithmetic.h"
 
 #include "libics_ll.h"
@@ -36,6 +35,9 @@
 #include <algorithm>
 
 #include "profile.h"
+
+#include <string.h>
+#include <stdio.h>
 
 // This is to allow the client to set a global compression level
 // RGB images can take ages to save when using compression.
@@ -519,6 +521,8 @@ FreeImageIcs_SumIntensityProjection(ICS *ics, int dimension)
     int width = dims[0];
     int height = dims[1];
 
+    FIBITMAP *tmp = NULL;
+    FIBITMAP *sum = FreeImage_AllocateT(FIT_FLOAT, width, height, 32, 0, 0, 0);
     bufsize = IcsGetDataSize (ics);
 	data = (BYTE*) malloc(bufsize);
 
@@ -526,8 +530,6 @@ FreeImageIcs_SumIntensityProjection(ICS *ics, int dimension)
         FreeImage_OutputMessageProc(FIF_UNKNOWN, "Error calling IcsGetData buffer size");
 		goto Error;
     }
-        
-    FIBITMAP *sum = FreeImage_AllocateT(FIT_FLOAT, width, height, 32, 0, 0, 0);
 
     if(sum == NULL)
          goto Error;
@@ -537,8 +539,6 @@ FreeImageIcs_SumIntensityProjection(ICS *ics, int dimension)
     
     if(number_of_slices < 2)
         return sum;
-
-    FIBITMAP *tmp = NULL;
 
     for(int i=1; i < number_of_slices; i++) {
 
@@ -587,6 +587,9 @@ FreeImageIcs_MaximumIntensityProjection(ICS *ics, int dimension)
     int width = dims[0];
     int height = dims[1];
 
+    FIBITMAP *sum = FreeImage_AllocateT(FIT_FLOAT, width, height, 32, 0, 0, 0);
+    FIBITMAP *tmp = NULL;
+
 	bufsize = IcsGetDataSize (ics);
 	data = (BYTE*) malloc(bufsize);
 
@@ -595,33 +598,21 @@ FreeImageIcs_MaximumIntensityProjection(ICS *ics, int dimension)
 		goto Error;
     }
         
-    FIBITMAP *sum = FreeImage_AllocateT(FIT_FLOAT, width, height, 32, 0, 0, 0);
-
     if(sum == NULL)
          goto Error;
     
     if(number_of_slices < 2)
         return sum;
 
-    FIBITMAP *tmp = NULL;
-
     for(int i=1; i < number_of_slices; i++) {
-
-		PROFILE_START("FreeImageIcs_GetIcsImageDimensionalDataSlice");
 
 		if((tmp = FreeImageIcs_GetIcsImageDimensionalDataSliceFromData(data, dataType, ndims,  dims, dimension, i)) == NULL)
 			goto Error;
-
-		PROFILE_STOP("FreeImageIcs_GetIcsImageDimensionalDataSlice");
-
-		PROFILE_START("FIA_GetMaxIntensityFromImages");
 
         if(FIA_GetMaxIntensityFromImages(sum, tmp) == FIA_ERROR)             {
             FreeImage_Unload(tmp);
             goto Error;
         }
-
-		PROFILE_STOP("FIA_GetMaxIntensityFromImages");
 
         FreeImage_Unload(tmp);
     }

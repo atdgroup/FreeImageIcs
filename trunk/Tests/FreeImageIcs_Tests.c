@@ -99,8 +99,6 @@ TestFreeImageIcs_MaxIntensityProjection(CuTest* tc)
 
 	char *file = "C:\\Csarseven.ics";
   
-	PROFILE_START("TestFreeImageIcs_MaxIntensityProjection");
-
 	err = FreeImageIcs_IcsOpen (&ics, file, "r");
 
     CuAssertTrue(tc, err == IcsErr_Ok);
@@ -113,8 +111,6 @@ TestFreeImageIcs_MaxIntensityProjection(CuTest* tc)
 
 	FreeImage_Unload(fib);
 	FreeImageIcs_IcsClose(ics);
-
-	PROFILE_STOP("TestFreeImageIcs_MaxIntensityProjection");
 }
 
 
@@ -136,7 +132,7 @@ TestFreeImageIcs_ReadMultiDimensionalGreyScale(CuTest* tc)
 
 	assert(fib != NULL);
 
-	ShowImage(fib);
+	//ShowImage(fib);
 
 	FreeImage_Unload(fib);
 
@@ -144,6 +140,7 @@ TestFreeImageIcs_ReadMultiDimensionalGreyScale(CuTest* tc)
 }
 
 
+/*
 static void
 TestFreeImageIcs_ReadMultiDimensionalGreyScaleSlice(CuTest* tc)
 {
@@ -168,7 +165,7 @@ TestFreeImageIcs_ReadMultiDimensionalGreyScaleSlice(CuTest* tc)
 
 	FreeImageIcs_IcsClose(ics);
 }
-
+*/
 
 static void
 TestFreeImageIcs_ReadMultiDimensionalColour(CuTest* tc)
@@ -272,6 +269,7 @@ TestFreeImageIcs_MetaDataAdd(CuTest* tc)
 
 
 
+/*
 static void
 TestFreeImageAlgorithms_LinearScaleTest(CuTest* tc)
 {
@@ -298,8 +296,6 @@ TestFreeImageAlgorithms_LinearScaleTest(CuTest* tc)
 
     //
 
-    //PROFILE_START("LinearScale");
-
 	//for(int i=0; i < 1000; i++) {
 		
     scaled_dib = FreeImageAlgorithms_LinearScaleToStandardType(dib, 0, 90, &min_found, &max_found);  
@@ -310,15 +306,13 @@ TestFreeImageAlgorithms_LinearScaleTest(CuTest* tc)
 //		    FreeImage_Unload(scaled_dib);
 //	}
 
-    //PROFILE_STOP("LinearScale");
-
-
     //FIA_SaveFIBToFile(scaled_dib, "C:\\Documents and Settings\\Pierce\\Desktop\\output.bmp", BIT8);
 
     FreeImage_Unload(scaled_dib);
 	FreeImage_Unload(dib);
 
 }
+*/
 
 static void
 TestFreeImageIcs_SaveLargeColourIcsTest(CuTest* tc)
@@ -333,11 +327,7 @@ TestFreeImageIcs_SaveLargeColourIcsTest(CuTest* tc)
 
 	fib = FreeImageIcs_LoadFIBFromIcsFilePath(file);
 
-	PROFILE_START("FreeImageIcs_SaveImage");
-
 	FreeImageIcs_SaveImage (fib, "C:\\out.ics", 1);  
-
-	PROFILE_STOP("FreeImageIcs_SaveImage");
 
 	FreeImage_Unload(fib);
 }
@@ -353,11 +343,7 @@ TestFreeImageIcs_SaveLargeGreyscaleIcsTest(CuTest* tc)
 	
 	fib = FreeImageIcs_LoadFIBFromIcsFilePath(file);
 
-	PROFILE_START("FreeImageIcs_SaveImage");
-
 	FreeImageIcs_SaveImage (fib, "C:\\out.ics", 1);  
-
-	PROFILE_STOP("FreeImageIcs_SaveImage");
 
 	FreeImage_Unload(fib);
 }

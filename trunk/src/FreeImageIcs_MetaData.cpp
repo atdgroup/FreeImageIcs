@@ -26,6 +26,9 @@
 
 #include "libics.h"
 
+#include <stdio.h>
+#include <string.h>
+
 #include <iostream>
 
 static char*
@@ -121,7 +124,7 @@ FreeImageIcs_JoinKeyValueIntoHistoryString(char *history_string, char *key, char
 
 
 int DLL_CALLCONV
-FreeImageIcs_GetFirstIcsHistoryValueWithKey(ICS *ics, char *key, char *value)
+FreeImageIcs_GetFirstIcsHistoryValueWithKey(ICS *ics, const char *key, char *value)
 {
 	Ics_HistoryIterator it;     
     Ics_Error err;

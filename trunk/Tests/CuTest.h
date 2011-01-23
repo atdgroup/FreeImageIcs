@@ -5,6 +5,7 @@
 extern "C" {
 #endif
 
+#include <stdio.h>
 #include <setjmp.h>
 #include <stdarg.h>
 

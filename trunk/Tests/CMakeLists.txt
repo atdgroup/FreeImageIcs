@@ -10,6 +10,6 @@ ADD_EXECUTABLE (FreeImageIcsTests ${FI_ICS_TEST_SRCS})
 LINK_DIRECTORIES (${LIBRARY_OUTPUT_PATH})
 
 # Link the executable to the Hello library.
-TARGET_LINK_LIBRARIES (FreeImageIcsTests optimized freeimageics.lib debug freeimageics_d.lib 
-										 optimized freeimagealgorithms.lib debug freeimagealgorithms_d.lib
-										 freeimage)
+TARGET_LINK_LIBRARIES (FreeImageIcsTests FreeImageIcs
+										 ${FREEIMAGEALGORITHMS_LIBRARY}
+										 ${FREEIMAGE_LIBRARY})

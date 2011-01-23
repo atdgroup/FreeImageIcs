@@ -89,7 +89,7 @@ FreeImageIcs_ReplaceIcsHistoryValueForKey(ICS *ics, const char *key, const char 
 Get the first history string value for the corresponding key.
 */
 DLL_API int DLL_CALLCONV
-FreeImageIcs_GetFirstIcsHistoryValueWithKey(ICS *ics, char *key, char *value);
+FreeImageIcs_GetFirstIcsHistoryValueWithKey(ICS *ics, const char *key, char *value);
 
 
 /*
