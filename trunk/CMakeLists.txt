@@ -69,6 +69,7 @@ SET(SRCS zlib/adler32.c
 )
 
 SET(PUBLIC_HEADERS
+         libics-1.5.1/libics.h
          include/FreeImageIcs_IO.h
          include/FreeImageIcs_MetaData.h
 )
