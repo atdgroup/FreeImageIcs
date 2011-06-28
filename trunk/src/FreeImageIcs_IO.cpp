@@ -288,8 +288,7 @@ FreeImageIcs_SaveIcsFileWithDimensionsAs(ICS *ics, const char *filepath, size_t*
 	size_t bufsize;
     Ics_DataType dt;
 
-	BYTE *old_bits = NULL, *tmp_old_bits = NULL;
-	BYTE *bits = NULL, *tmp_bits = NULL;
+	BYTE *bits = NULL;
 
 	if(ics == NULL)
 		goto Error;
@@ -312,6 +311,7 @@ FreeImageIcs_SaveIcsFileWithDimensionsAs(ICS *ics, const char *filepath, size_t*
     bufsize = IcsGetDataSize (ics);
 
     bits = (BYTE*) malloc(bufsize);
+	if (!bits) goto Error;
 
 	size_t strides[10], new_strides[10];
 
@@ -526,6 +526,8 @@ FreeImageIcs_SumIntensityProjection(ICS *ics, int dimension)
     bufsize = IcsGetDataSize (ics);
 	data = (BYTE*) malloc(bufsize);
 
+	if (!data) goto Error;
+
 	if(IcsGetData(ics, data, bufsize) != IcsErr_Ok) {
         FreeImage_OutputMessageProc(FIF_UNKNOWN, "Error calling IcsGetData buffer size");
 		goto Error;
@@ -592,6 +594,7 @@ FreeImageIcs_MaximumIntensityProjection(ICS *ics, int dimension)
 
 	bufsize = IcsGetDataSize (ics);
 	data = (BYTE*) malloc(bufsize);
+	if (!data) goto Error;
 
 	if(IcsGetData(ics, data, bufsize) != IcsErr_Ok) {
         FreeImage_OutputMessageProc(FIF_UNKNOWN, "Error calling IcsGetData buffer size");
@@ -748,7 +751,6 @@ FreeImageIcs_LoadFIBFromIcsFile (ICS *ics)
 FIBITMAP* DLL_CALLCONV
 FreeImageIcs_LoadFIBFromColourIcsFile (ICS *ics)
 {
-	FIBITMAP *dib;
 	Ics_DataType dt;
 	int ndims, channels = 1;
 	int dims[ICS_MAXDIM];
@@ -929,7 +931,7 @@ SaveColourImage (FIBITMAP *dib, const char *filepath, bool save_metadata)
 	if(FreeImage_GetBPP(dib) != 24)
 		standard_dib = FreeImage_ConvertTo24Bits(dib);
 	else
-		standard_dib = FreeImage_Clone(dib);
+		standard_dib = dib;
 
 	ndims = 3;	
 	dims[0] = FreeImage_GetWidth(standard_dib); 
@@ -943,37 +945,44 @@ SaveColourImage (FIBITMAP *dib, const char *filepath, bool save_metadata)
 	}
 
 	BYTE *bits = (BYTE*) malloc(bufsize);
+	if (!bits) goto Error;
 
 	GetColourImageDataInIcsFormat(standard_dib, bits);
 
 	if( IcsSetLayout(ics, dt, ndims, (size_t *) dims) != IcsErr_Ok)
-		return FIA_ERROR;
+		goto Error;
 
 	if(IcsSetOrder  (ics, 0, "x", "x-position") != IcsErr_Ok)
-		return FIA_ERROR;
+		goto Error;
 
 	if(IcsSetOrder  (ics, 1, "y", "y-position") != IcsErr_Ok)
-		return FIA_ERROR;
+		goto Error;
 
 	if(IcsSetOrder	 (ics, 2, "c", "colour") != IcsErr_Ok)
-		return FIA_ERROR;
+		goto Error;
 
 	if( (err = IcsSetData(ics, bits, bufsize)) != IcsErr_Ok)
-		return FIA_ERROR;
+		goto Error;
 		
 	if( IcsSetCompression (ics, IcsCompr_gzip, compression_level) != IcsErr_Ok)
-		return FIA_ERROR;
+		goto Error;
 	
 	if( IcsClose (ics) != IcsErr_Ok) {
 		
 		FreeImage_Unload(dib);
-		return FIA_ERROR;
+		goto Error;
 	}
 
 	free(bits);
-	FreeImage_Unload(standard_dib);
+	if(FreeImage_GetBPP(dib) != 24)   // only need to unload if this temporary image was created
+		FreeImage_Unload(standard_dib);
 
 	return FIA_SUCCESS;
+
+Error:
+	if (bits) free(bits);
+
+	return FIA_ERROR;
 }
 
 
@@ -1086,6 +1095,8 @@ Error:
 
 	if(bits != NULL)
 		free(bits);
+
+	return FIA_ERROR;
 }
 
 Ics_Error DLL_CALLCONV
