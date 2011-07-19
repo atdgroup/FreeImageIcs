@@ -12,8 +12,14 @@ namespace FreeImageIcs
         // Ics
         const string FreeImageIcsDll = "FreeImageIcs.dll";
 
-        [DllImport(FreeImageIcsDll, EntryPoint="FreeImageIcs_IcsAddHistoryString")]
-        internal static extern int IcsAddHistoryString (IntPtr ics, string key, string value);
+        [DllImport(FreeImageIcsDll, EntryPoint = "FreeImageIcs_IcsSetNativeIntensityScale")]
+        internal static extern int SetNativeIntensityScale(IntPtr ics, double origin, double scale, string units);
+
+        [DllImport(FreeImageIcsDll, EntryPoint = "FreeImageIcs_IcsSetNativeScale")]
+        internal static extern int SetNativeScale(IntPtr ics, int dimension, double origin, double scale, string units);
+
+        [DllImport(FreeImageIcsDll, EntryPoint = "FreeImageIcs_IcsAddHistoryString")]
+        internal static extern int IcsAddHistoryString(IntPtr ics, string key, string value);
 
         [DllImport(FreeImageIcsDll, EntryPoint="FreeImageIcs_IcsDeleteHistory")]
         internal static extern int IcsDeleteHistory (IntPtr ics, string key);

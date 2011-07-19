@@ -108,5 +108,15 @@ namespace FreeImageIcs
         {
             FreeImageIcsNativeMethods.IcsDeleteHistory(this.ics, "");
         }
-	}
+
+        public void SetNativeScale(int dimension, double origin, double scale, string units)
+        {
+            FreeImageIcsNativeMethods.SetNativeScale(this.ics, dimension, origin, scale, units);
+        }
+
+        public void SetNativeIntensityScale(double origin, double scale, string units)
+        {
+            FreeImageIcsNativeMethods.SetNativeIntensityScale(this.ics, origin, scale, units);
+        }
+    }
 }
