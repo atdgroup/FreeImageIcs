@@ -43,6 +43,10 @@
 // RGB images can take ages to save when using compression.
 static int compression_level = 7;
 
+// This allows the client to set the version of ICS file to use for writing
+// 1 = version 1, 2 = version 2 (default and usual)
+static int ics_version = 2;
+
 // This gets the size in bytes between each element in a dimension
 // The first dimension 0 always return the size of dataType.
 static Ics_Error DLL_CALLCONV
@@ -229,6 +233,15 @@ static void CalculateStrides(ICS *ics, size_t* dims, int ndims, size_t *strides)
 	}
 }
 
+void DLL_CALLCONV
+FreeImageIcs_SetICSVersion (int version)  // 1 or 2, default=2
+{
+	if (version == 1)
+		ics_version = 1;
+	else
+		ics_version = 2;
+}
+
 void  DLL_CALLCONV
 FreeImageIcs_SetCompressionLevel (int level)
 {
@@ -294,7 +307,12 @@ FreeImageIcs_SaveIcsFileWithDimensionsAs(ICS *ics, const char *filepath, size_t*
 		goto Error;
   
     // Create new ics file that contails the swapped dimensions
-	if((err = IcsOpen (&new_ics, filepath, "w2")) != IcsErr_Ok)
+	if (ics_version == 1)
+		err = IcsOpen (&new_ics, filepath, "w1");
+	else
+		err = IcsOpen (&new_ics, filepath, "w2");
+	
+	if(err != IcsErr_Ok)
    		goto Error;
 
     // Get number of dimensions in old ics file
@@ -839,7 +857,10 @@ SaveGreyScaleImage (FIBITMAP *dib, const char *filepath, bool save_metadata)
 	if(dib == NULL)
 		return FIA_ERROR;
 
-	err = IcsOpen (&ics, filepath, "w2");
+	if (ics_version == 1)
+		err = IcsOpen (&ics, filepath, "w1");
+	else
+		err = IcsOpen (&ics, filepath, "w2");
 
 	if (err != IcsErr_Ok)
    		return FIA_ERROR;
@@ -923,7 +944,10 @@ SaveColourImage (FIBITMAP *dib, const char *filepath, bool save_metadata)
 	if(FIA_IsGreyScale(dib))
 		return FIA_ERROR;
 
-	err = IcsOpen (&ics, filepath, "w2");
+	if (ics_version == 1)
+		err = IcsOpen (&ics, filepath, "w1");
+	else
+		err = IcsOpen (&ics, filepath, "w2");
 
 	if (err != IcsErr_Ok)
    		return FIA_ERROR;
@@ -1008,7 +1032,10 @@ FreeImageIcs_SaveIcsDataToFile (const char *filepath, void *data, Ics_DataType d
 	Ics_Error err;
 	int bufsize = 1;
 	
-	err = IcsOpen (&ics, filepath, "w2");
+	if (ics_version == 1)
+		err = IcsOpen (&ics, filepath, "w1");
+	else
+		err = IcsOpen (&ics, filepath, "w2");
 
     if (err != IcsErr_Ok) {
         FreeImage_OutputMessageProc(FIF_UNKNOWN, "Error opening filepath %s", filepath);

@@ -91,6 +91,9 @@ DLL_API FIBITMAP* DLL_CALLCONV
 FreeImageIcs_MaximumIntensityProjection(ICS *ics, int dimension);
 
 DLL_API void DLL_CALLCONV
+FreeImageIcs_SetICSVersion (int version);  // 1 or 2, default=2
+
+DLL_API void DLL_CALLCONV
 FreeImageIcs_SetCompressionLevel (int level);
 
 DLL_API size_t DLL_CALLCONV

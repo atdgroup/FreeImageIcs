@@ -339,13 +339,35 @@ TestFreeImageIcs_SaveLargeGreyscaleIcsTest(CuTest* tc)
 	int err;
 	FIBITMAP* fib;
 
-    char *file = "C:\\GreyscaleTest.ics";
+    //char *file = "C:\\GreyscaleTest.ics";
+    char *file = "C:\\Devel\\ATD\\ATD_Libraries\\FreeImageIcs\\trunk\\build\\bin\\Debug\\test.ics";
 	
 	fib = FreeImageIcs_LoadFIBFromIcsFilePath(file);
 
-	FreeImageIcs_SaveImage (fib, "C:\\out.ics", 1);  
+	FreeImageIcs_SaveImage (fib, "C:\\Devel\\ATD\\ATD_Libraries\\FreeImageIcs\\trunk\\build\\bin\\Debug\\test_out.ics", 1);  
 
 	FreeImage_Unload(fib);
+}
+
+static void
+TestFreeImageIcs_SaveGreyscaleIcsVersion1Test(CuTest* tc)
+{
+	ICS *ics = NULL, *new_ics;
+	int err;
+	FIBITMAP* fib;
+
+    //char *file = "C:\\GreyscaleTest.ics";
+    char *file = "C:\\Devel\\ATD\\ATD_Libraries\\FreeImageIcs\\trunk\\build\\bin\\Debug\\test.ics";
+	
+	fib = FreeImageIcs_LoadFIBFromIcsFilePath(file);
+
+	FreeImageIcs_SetICSVersion(1);
+
+	FreeImageIcs_SaveImage (fib, "C:\\Devel\\ATD\\ATD_Libraries\\FreeImageIcs\\trunk\\build\\bin\\Debug\\test_outv1.ics", 1);  
+
+	FreeImage_Unload(fib);
+
+	FreeImageIcs_SetICSVersion(2); // reset version for future tests
 }
 
 
@@ -355,8 +377,9 @@ CuGetFreeImageIcsTestSuite(void)
 {
 	CuSuite* suite = CuSuiteNew();
 
-	SUITE_ADD_TEST(suite, TestFreeImageIcs_SaveLargeColourIcsTest);
-	//SUITE_ADD_TEST(suite, TestFreeImageIcs_SaveLargeGreyscaleIcsTest);
+	//SUITE_ADD_TEST(suite, TestFreeImageIcs_SaveLargeColourIcsTest);
+	SUITE_ADD_TEST(suite, TestFreeImageIcs_SaveLargeGreyscaleIcsTest);
+	SUITE_ADD_TEST(suite, TestFreeImageIcs_SaveGreyscaleIcsVersion1Test);
 
     //SUITE_ADD_TEST(suite, TestFreeImageAlgorithms_LinearScaleTest);
     //SUITE_ADD_TEST(suite, TestFreeImageIcs_SumIntensityProjection);
