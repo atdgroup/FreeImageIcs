@@ -288,7 +288,11 @@ FreeImageIcs_SetLayout (ICS* ics, Ics_DataType dt, int ndims, size_t const* dims
 Ics_Error DLL_CALLCONV
 FreeImageIcs_SetCompression (ICS* ics, Ics_Compression compression, int level)
 {
-  return IcsSetCompression (ics, compression, level);
+	// if we want no compression set that explicitly
+	if (level ==0)
+		compression = IcsCompr_uncompressed;
+
+	return IcsSetCompression (ics, compression, level);
 }
 
 int DLL_CALLCONV
@@ -372,7 +376,7 @@ FreeImageIcs_SaveIcsFileWithDimensionsAs(ICS *ics, const char *filepath, size_t*
         FreeImageIcs_ReplaceIcsHistoryValueForKey(new_ics, "labels", out);
     }
 
-    if( (err = IcsSetCompression (new_ics, IcsCompr_gzip, compression_level)) != IcsErr_Ok)
+    if( (err = FreeImageIcs_SetCompression (new_ics, IcsCompr_gzip, compression_level)) != IcsErr_Ok)
 	    goto Error;
 
     if( (err = FreeImageIcs_IcsClose (new_ics)) != IcsErr_Ok)
@@ -898,7 +902,7 @@ SaveGreyScaleImage (FIBITMAP *dib, const char *filepath, bool save_metadata)
 	if( (err = IcsSetData(ics, bits, bufsize)) != IcsErr_Ok)
 		goto Error;
 		
-	if( IcsSetCompression (ics, IcsCompr_gzip, compression_level) != IcsErr_Ok)
+	if( FreeImageIcs_SetCompression (ics, IcsCompr_gzip, compression_level) != IcsErr_Ok)
 		goto Error;
 	
 	if( IcsClose (ics) != IcsErr_Ok) {
@@ -988,7 +992,7 @@ SaveColourImage (FIBITMAP *dib, const char *filepath, bool save_metadata)
 	if( (err = IcsSetData(ics, bits, bufsize)) != IcsErr_Ok)
 		goto Error;
 		
-	if( IcsSetCompression (ics, IcsCompr_gzip, compression_level) != IcsErr_Ok)
+	if( FreeImageIcs_SetCompression (ics, IcsCompr_gzip, compression_level) != IcsErr_Ok)
 		goto Error;
 	
 	if( IcsClose (ics) != IcsErr_Ok) {
@@ -1058,7 +1062,7 @@ FreeImageIcs_SaveIcsDataToFile (const char *filepath, void *data, Ics_DataType d
 		return FIA_ERROR;
     }
 		
-    if( IcsSetCompression (ics, IcsCompr_gzip, compression_level) != IcsErr_Ok) {
+    if( FreeImageIcs_SetCompression (ics, IcsCompr_gzip, compression_level) != IcsErr_Ok) {
         FreeImage_OutputMessageProc(FIF_UNKNOWN, "Error calling IcsSetCompression");
 		return FIA_ERROR;
     }
